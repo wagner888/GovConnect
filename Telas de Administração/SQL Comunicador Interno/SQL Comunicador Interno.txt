@@ -1,0 +1,425 @@
+-- ============================================
+-- BASE DE DADOS - COMUNICADOR INTERNO EMPRESA
+-- ============================================
+
+-- Criação do banco de dados
+CREATE DATABASE comunicador_interno;
+USE comunicador_interno;
+
+-- ============================================
+-- 1. TABELA DE EMPRESAS
+-- ============================================
+CREATE TABLE empresas (
+    id_empresa INT PRIMARY KEY AUTO_INCREMENT,
+    nome_empresa VARCHAR(100) NOT NULL,
+    cnpj VARCHAR(18) UNIQUE,
+    logo_path VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ativo BOOLEAN DEFAULT TRUE
+);
+
+-- ============================================
+-- 2. TABELA DE DEPARTAMENTOS
+-- ============================================
+CREATE TABLE departamentos (
+    id_departamento INT PRIMARY KEY AUTO_INCREMENT,
+    id_empresa INT NOT NULL,
+    nome_departamento VARCHAR(80) NOT NULL,
+    descricao TEXT,
+    cor_tema VARCHAR(7) DEFAULT '#4444ad', -- Código hexadecimal da cor
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ativo BOOLEAN DEFAULT TRUE,
+    
+    CONSTRAINT fk_departamento_empresa 
+        FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ============================================
+-- 3. TABELA DE CARGOS/FUNÇÕES
+-- ============================================
+CREATE TABLE cargos (
+    id_cargo INT PRIMARY KEY AUTO_INCREMENT,
+    id_departamento INT NOT NULL,
+    nome_cargo VARCHAR(80) NOT NULL,
+    nivel_acesso ENUM('basico', 'intermediario', 'avancado', 'admin') DEFAULT 'basico',
+    descricao TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ativo BOOLEAN DEFAULT TRUE,
+    
+    CONSTRAINT fk_cargo_departamento 
+        FOREIGN KEY (id_departamento) REFERENCES departamentos(id_departamento)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ============================================
+-- 4. TABELA DE USUÁRIOS
+-- ============================================
+CREATE TABLE usuarios (
+    id_usuario INT PRIMARY KEY AUTO_INCREMENT,
+    id_empresa INT NOT NULL,
+    id_departamento INT NOT NULL,
+    id_cargo INT NOT NULL,
+    nome_completo VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
+    telefone VARCHAR(20),
+    avatar_path VARCHAR(255),
+    iniciais VARCHAR(3) NOT NULL, -- Para exibir no avatar (ex: SS, WN)
+    cor_avatar VARCHAR(7) DEFAULT '#4444ad',
+    ultimo_acesso TIMESTAMP,
+    status_online ENUM('online', 'ausente', 'ocupado', 'invisivel') DEFAULT 'invisivel',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ativo BOOLEAN DEFAULT TRUE,
+    
+    CONSTRAINT fk_usuario_empresa 
+        FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_usuario_departamento 
+        FOREIGN KEY (id_departamento) REFERENCES departamentos(id_departamento)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_usuario_cargo 
+        FOREIGN KEY (id_cargo) REFERENCES cargos(id_cargo)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- ============================================
+-- 5. TABELA DE GRUPOS/EQUIPES
+-- ============================================
+CREATE TABLE grupos (
+    id_grupo INT PRIMARY KEY AUTO_INCREMENT,
+    id_empresa INT NOT NULL,
+    id_criador INT NOT NULL,
+    nome_grupo VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    tipo_grupo ENUM('publico', 'privado', 'departamento') DEFAULT 'privado',
+    avatar_path VARCHAR(255),
+    cor_avatar VARCHAR(7) DEFAULT '#ffecd2',
+    max_membros INT DEFAULT 50,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ativo BOOLEAN DEFAULT TRUE,
+    
+    CONSTRAINT fk_grupo_empresa 
+        FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_grupo_criador 
+        FOREIGN KEY (id_criador) REFERENCES usuarios(id_usuario)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- ============================================
+-- 6. TABELA DE MEMBROS DOS GRUPOS
+-- ============================================
+CREATE TABLE grupos_membros (
+    id_membro_grupo INT PRIMARY KEY AUTO_INCREMENT,
+    id_grupo INT NOT NULL,
+    id_usuario INT NOT NULL,
+    papel ENUM('membro', 'admin', 'moderador') DEFAULT 'membro',
+    data_entrada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ativo BOOLEAN DEFAULT TRUE,
+    
+    CONSTRAINT fk_grupo_membro_grupo 
+        FOREIGN KEY (id_grupo) REFERENCES grupos(id_grupo)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_grupo_membro_usuario 
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    
+    -- Evita duplicação de usuário no mesmo grupo
+    UNIQUE KEY uk_grupo_usuario (id_grupo, id_usuario)
+);
+
+-- ============================================
+-- 7. TABELA DE CONVERSAS
+-- ============================================
+CREATE TABLE conversas (
+    id_conversa INT PRIMARY KEY AUTO_INCREMENT,
+    id_empresa INT NOT NULL,
+    tipo_conversa ENUM('individual', 'grupo') NOT NULL,
+    id_grupo INT NULL, -- Preenchido apenas para conversas de grupo
+    nome_conversa VARCHAR(100), -- Para grupos ou conversas nomeadas
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ativo BOOLEAN DEFAULT TRUE,
+    
+    CONSTRAINT fk_conversa_empresa 
+        FOREIGN KEY (id_empresa) REFERENCES empresas(id_empresa)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_conversa_grupo 
+        FOREIGN KEY (id_grupo) REFERENCES grupos(id_grupo)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ============================================
+-- 8. TABELA DE PARTICIPANTES DAS CONVERSAS
+-- ============================================
+CREATE TABLE conversas_participantes (
+    id_participante INT PRIMARY KEY AUTO_INCREMENT,
+    id_conversa INT NOT NULL,
+    id_usuario INT NOT NULL,
+    data_entrada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_saida TIMESTAMP NULL,
+    ultima_leitura TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notificacoes_ativas BOOLEAN DEFAULT TRUE,
+    ativo BOOLEAN DEFAULT TRUE,
+    
+    CONSTRAINT fk_participante_conversa 
+        FOREIGN KEY (id_conversa) REFERENCES conversas(id_conversa)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_participante_usuario 
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    
+    -- Evita duplicação de usuário na mesma conversa
+    UNIQUE KEY uk_conversa_usuario (id_conversa, id_usuario, ativo)
+);
+
+-- ============================================
+-- 9. TABELA DE MENSAGENS
+-- ============================================
+CREATE TABLE mensagens (
+    id_mensagem INT PRIMARY KEY AUTO_INCREMENT,
+    id_conversa INT NOT NULL,
+    id_remetente INT NOT NULL,
+    conteudo TEXT NOT NULL,
+    tipo_mensagem ENUM('texto', 'arquivo', 'imagem', 'video', 'audio') DEFAULT 'texto',
+    arquivo_path VARCHAR(255), -- Para anexos
+    arquivo_nome VARCHAR(255), -- Nome original do arquivo
+    arquivo_tamanho INT, -- Tamanho em bytes
+    data_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    editada BOOLEAN DEFAULT FALSE,
+    data_edicao TIMESTAMP NULL,
+    excluida BOOLEAN DEFAULT FALSE,
+    data_exclusao TIMESTAMP NULL,
+    
+    CONSTRAINT fk_mensagem_conversa 
+        FOREIGN KEY (id_conversa) REFERENCES conversas(id_conversa)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_mensagem_remetente 
+        FOREIGN KEY (id_remetente) REFERENCES usuarios(id_usuario)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- ============================================
+-- 10. TABELA DE LEITURA DAS MENSAGENS
+-- ============================================
+CREATE TABLE mensagens_leituras (
+    id_leitura INT PRIMARY KEY AUTO_INCREMENT,
+    id_mensagem INT NOT NULL,
+    id_usuario INT NOT NULL,
+    data_leitura TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_leitura_mensagem 
+        FOREIGN KEY (id_mensagem) REFERENCES mensagens(id_mensagem)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_leitura_usuario 
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    
+    -- Evita duplicação de leitura
+    UNIQUE KEY uk_mensagem_usuario (id_mensagem, id_usuario)
+);
+
+-- ============================================
+-- 11. TABELA DE REAÇÕES ÀS MENSAGENS
+-- ============================================
+CREATE TABLE mensagens_reacoes (
+    id_reacao INT PRIMARY KEY AUTO_INCREMENT,
+    id_mensagem INT NOT NULL,
+    id_usuario INT NOT NULL,
+    emoji VARCHAR(10) NOT NULL, -- 👍, ❤️, 😂, etc.
+    data_reacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_reacao_mensagem 
+        FOREIGN KEY (id_mensagem) REFERENCES mensagens(id_mensagem)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_reacao_usuario 
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    
+    -- Um usuário pode dar apenas uma reação por mensagem
+    UNIQUE KEY uk_mensagem_usuario_emoji (id_mensagem, id_usuario, emoji)
+);
+
+-- ============================================
+-- 12. TABELA DE NOTIFICAÇÕES
+-- ============================================
+CREATE TABLE notificacoes (
+    id_notificacao INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario_destinatario INT NOT NULL,
+    id_usuario_remetente INT,
+    id_mensagem INT,
+    id_conversa INT,
+    tipo_notificacao ENUM('mensagem', 'mencao', 'grupo_adicionado', 'grupo_removido') NOT NULL,
+    titulo VARCHAR(100) NOT NULL,
+    conteudo TEXT,
+    lida BOOLEAN DEFAULT FALSE,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_leitura TIMESTAMP NULL,
+    
+    CONSTRAINT fk_notificacao_destinatario 
+        FOREIGN KEY (id_usuario_destinatario) REFERENCES usuarios(id_usuario)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_notificacao_remetente 
+        FOREIGN KEY (id_usuario_remetente) REFERENCES usuarios(id_usuario)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_notificacao_mensagem 
+        FOREIGN KEY (id_mensagem) REFERENCES mensagens(id_mensagem)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_notificacao_conversa 
+        FOREIGN KEY (id_conversa) REFERENCES conversas(id_conversa)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ============================================
+-- 13. TABELA DE SESSÕES DE USUÁRIOS
+-- ============================================
+CREATE TABLE sessoes_usuarios (
+    id_sessao INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT NOT NULL,
+    token_sessao VARCHAR(255) UNIQUE NOT NULL,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    data_inicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_ultimo_acesso TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ativa BOOLEAN DEFAULT TRUE,
+    
+    CONSTRAINT fk_sessao_usuario 
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- ============================================
+-- 14. TABELA DE LOGS/AUDITORIA
+-- ============================================
+CREATE TABLE logs_auditoria (
+    id_log INT PRIMARY KEY AUTO_INCREMENT,
+    id_usuario INT,
+    acao VARCHAR(50) NOT NULL,
+    tabela_afetada VARCHAR(50),
+    id_registro_afetado INT,
+    dados_anteriores JSON,
+    dados_novos JSON,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    data_acao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_log_usuario 
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+        ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- ============================================
+-- ÍNDICES PARA OTIMIZAÇÃO
+-- ============================================
+
+-- Índices para mensagens (consultas frequentes)
+CREATE INDEX idx_mensagens_conversa_data ON mensagens(id_conversa, data_envio DESC);
+CREATE INDEX idx_mensagens_remetente ON mensagens(id_remetente);
+CREATE INDEX idx_mensagens_data ON mensagens(data_envio DESC);
+
+-- Índices para conversas e participantes
+CREATE INDEX idx_conversas_empresa ON conversas(id_empresa);
+CREATE INDEX idx_participantes_usuario ON conversas_participantes(id_usuario);
+CREATE INDEX idx_participantes_conversa ON conversas_participantes(id_conversa);
+
+-- Índices para usuários
+CREATE INDEX idx_usuarios_empresa ON usuarios(id_empresa);
+CREATE INDEX idx_usuarios_departamento ON usuarios(id_departamento);
+CREATE INDEX idx_usuarios_status ON usuarios(status_online);
+CREATE INDEX idx_usuarios_ultimo_acesso ON usuarios(ultimo_acesso);
+
+-- Índices para notificações
+CREATE INDEX idx_notificacoes_usuario_lida ON notificacoes(id_usuario_destinatario, lida);
+CREATE INDEX idx_notificacoes_data ON notificacoes(data_criacao DESC);
+
+-- Índices para grupos
+CREATE INDEX idx_grupos_empresa ON grupos(id_empresa);
+CREATE INDEX idx_grupos_membros_usuario ON grupos_membros(id_usuario);
+
+-- Índices para sessões
+CREATE INDEX idx_sessoes_usuario_ativa ON sessoes_usuarios(id_usuario, ativa);
+CREATE INDEX idx_sessoes_token ON sessoes_usuarios(token_sessao);
+
+-- ============================================
+-- DADOS DE EXEMPLO
+-- ============================================
+
+-- Inserindo empresa
+INSERT INTO empresas (nome_empresa, cnpj, logo_path) VALUES 
+('TechCorp Solutions', '12.345.678/0001-90', '/assets/logo-techcorp.png');
+
+-- Inserindo departamentos
+INSERT INTO departamentos (id_empresa, nome_departamento, descricao, cor_tema) VALUES 
+(1, 'Desenvolvimento', 'Equipe de desenvolvimento de software', '#4444ad'),
+(1, 'Jurídico', 'Departamento jurídico da empresa', '#667eea'),
+(1, 'Recursos Humanos', 'Gestão de pessoas e talentos', '#4ecdc4');
+
+-- Inserindo cargos
+INSERT INTO cargos (id_departamento, nome_cargo, nivel_acesso) VALUES 
+(1, 'Desenvolvedor', 'intermediario'),
+(1, 'Desenvolvedor Sênior', 'avancado'),
+(2, 'Advogado', 'intermediario'),
+(3, 'Analista de RH', 'basico');
+
+-- Inserindo usuários
+INSERT INTO usuarios (id_empresa, id_departamento, id_cargo, nome_completo, email, senha_hash, iniciais, cor_avatar, status_online) VALUES 
+(1, 1, 1, 'Silvano Sousa', 'silvano@techcorp.com', '$2y$10$example_hash_1', 'SS', '#ff6b6b', 'online'),
+(1, 1, 1, 'Wagner Naves', 'wagner@techcorp.com', '$2y$10$example_hash_2', 'WN', '#4ecdc4', 'ausente'),
+(1, 2, 3, 'Alexandre Campanhão', 'alexandre@techcorp.com', '$2y$10$example_hash_3', 'AC', '#667eea', 'online'),
+(1, 2, 3, 'Rogério Rosa', 'rogerio@techcorp.com', '$2y$10$example_hash_4', 'RS', '#667eea', 'ocupado');
+
+-- Inserindo grupo
+INSERT INTO grupos (id_empresa, id_criador, nome_grupo, descricao, tipo_grupo) VALUES 
+(1, 1, 'Grupo Equipe', 'Grupo geral da equipe de desenvolvimento', 'departamento');
+
+-- Inserindo membros do grupo
+INSERT INTO grupos_membros (id_grupo, id_usuario, papel) VALUES 
+(1, 1, 'admin'),
+(1, 2, 'membro'),
+(1, 3, 'membro'),
+(1, 4, 'membro');
+
+-- ============================================
+-- VIEWS ÚTEIS
+-- ============================================
+
+-- View para listar usuários com informações completas
+CREATE VIEW vw_usuarios_completo AS
+SELECT 
+    u.id_usuario,
+    u.nome_completo,
+    u.email,
+    u.iniciais,
+    u.cor_avatar,
+    u.status_online,
+    u.ultimo_acesso,
+    d.nome_departamento,
+    c.nome_cargo,
+    e.nome_empresa
+FROM usuarios u
+JOIN departamentos d ON u.id_departamento = d.id_departamento
+JOIN cargos c ON u.id_cargo = c.id_cargo
+JOIN empresas e ON u.id_empresa = e.id_empresa
+WHERE u.ativo = TRUE;
+
+-- View para contar mensagens não lidas por usuário
+CREATE VIEW vw_mensagens_nao_lidas AS
+SELECT 
+    cp.id_usuario,
+    COUNT(m.id_mensagem) as mensagens_nao_lidas,
+    c.id_conversa
+FROM conversas_participantes cp
+JOIN mensagens m ON cp.id_conversa = m.id_conversa
+JOIN conversas c ON cp.id_conversa = c.id_conversa
+LEFT JOIN mensagens_leituras ml ON m.id_mensagem = ml.id_mensagem AND ml.id_usuario = cp.id_usuario
+WHERE ml.id_leitura IS NULL 
+    AND m.id_remetente != cp.id_usuario
+    AND m.excluida = FALSE
+    AND cp.ativo = TRUE
+GROUP BY cp.id_usuario, c.id_conversa;

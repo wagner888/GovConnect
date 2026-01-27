@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GovConnect - Gerenciamento de Robôs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: #0f1419;
+            color: #ededed;
+            font-size: 13px;
+        }
+
+        /* Header Container Centralizado */
+        .header-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header Superior */
+        .top-header {
+            background: #181818;
+            border-bottom: 1px solid #2e2e2e;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header-main {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #3ecf8e;
+        }
+
+        .logo i {
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-bar {
+            position: relative;
+            width: 280px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 36px;
+            background: #0f1419;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            padding: 0 36px 0 12px;
+            color: #ededed;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3ecf8e;
+            background: #1a1a1a;
+        }
+
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 12px;
+        }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #b4b4b4;
+            position: relative;
+        }
+
+        .header-icon:hover {
+            background: #2a2a2a;
+            color: #ededed;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #3ecf8e;
+            border-radius: 50%;
+            border: 2px solid #181818;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-left: 12px;
+            border-left: 1px solid #2e2e2e;
+            padding-left: 20px;
+        }
+
+        .user-section:hover {
+            background: #2a2a2a;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3ecf8e, #2a9d8f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ededed;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* Menu de Navegação */
+        .nav-bar {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2e2e2e;
+            padding: 0 24px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            color: #b4b4b4;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: #ededed;
+            background: #2a2a2a;
+        }
+
+        .nav-link.active {
+            color: #3ecf8e;
+            border-bottom-color: #3ecf8e;
+        }
+
+        .nav-link i {
+            font-size: 12px;
+        }
+
+        /* Submenu */
+        .submenu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #1a1a1a;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            min-width: 220px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            margin-top: 4px;
+        }
+
+        .nav-item:hover .submenu {
+            display: block;
+        }
+
+        .submenu-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            color: #b4b4b4;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .submenu-link:hover {
+            color: #ededed;
+            background: #2a2a2a;
+            border-left-color: #3ecf8e;
+        }
+
+        .submenu-link.active {
+            color: #3ecf8e;
+            background: rgba(62, 207, 142, 0.1);
+            border-left-color: #3ecf8e;
+        }
+
+        .submenu-link i {
+            font-size: 11px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .submenu-divider {
+            height: 1px;
+            background: #2e2e2e;
+            margin: 4px 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 105px;
+            padding: 24px;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ededed;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .breadcrumb i {
+            font-size: 10px;
+        }
+
+        .breadcrumb .active {
+            color: #3ecf8e;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #2e2e2e;
+            background: transparent;
+            color: #b4b4b4;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #2a2a2a;
+            color: #ededed;
+            border-color: #3ecf8e;
+        }
+
+        .btn-primary {
+            background: #3ecf8e;
+            color: #0f1419;
+            border-color: #3ecf8e;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #34b87c;
+            border-color: #34b87c;
+        }
+
+        .status-badge-header {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge-header::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3ecf8e;
+        }
+
+        /* Tab Navigation */
+        .tabs-container {
+            background: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid #2e2e2e;
+            background: #1a1a1a;
+        }
+
+        .tab-btn {
+            padding: 16px 24px;
+            background: transparent;
+            border: none;
+            color: #b4b4b4;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: #1f1f1f;
+            color: #ededed;
+        }
+
+        .tab-btn.active {
+            color: #3ecf8e;
+            border-bottom-color: #3ecf8e;
+            background: #181818;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 24px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Search and Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            height: 36px;
+            background: #1a1a1a;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            padding: 0 12px;
+            color: #ededed;
+            font-size: 13px;
+            min-width: 200px;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #3ecf8e;
+        }
+
+        .filter-select {
+            height: 36px;
+            background: #1a1a1a;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            padding: 0 12px;
+            color: #ededed;
+            font-size: 13px;
+            min-width: 150px;
+        }
+
+        /* Robots Table */
+        .robots-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .robots-table th {
+            background: #181818;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #b4b4b4;
+            border-bottom: 1px solid #2e2e2e;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .robots-table td {
+            padding: 16px;
+            border-bottom: 1px solid #2e2e2e;
+            color: #ededed;
+        }
+
+        .robots-table tr:hover {
+            background: #1f1f1f;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-active {
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+        }
+
+        .status-active::before {
+            background: #3ecf8e;
+        }
+
+        .status-paused {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .status-paused::before {
+            background: #fbbf24;
+        }
+
+        .status-error {
+            background: rgba(240, 68, 56, 0.1);
+            color: #f04438;
+        }
+
+        .status-error::before {
+            background: #f04438;
+        }
+
+        .robot-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .robot-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .robot-icon.scanner {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+        }
+
+        .robot-icon.automation {
+            background: rgba(167, 139, 250, 0.1);
+            color: #a78bfa;
+        }
+
+        .robot-icon.collector {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid #2e2e2e;
+            color: #b4b4b4;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #2a2a2a;
+            color: #ededed;
+        }
+
+        .action-btn.view:hover {
+            color: #38bdf8;
+            border-color: #38bdf8;
+        }
+
+        .action-btn.edit:hover {
+            color: #3ecf8e;
+            border-color: #3ecf8e;
+        }
+
+        .action-btn.run:hover {
+            color: #fbbf24;
+            border-color: #fbbf24;
+        }
+
+        /* Form Styling */
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-section {
+            background: #1a1a1a;
+            border: 1px solid #2e2e2e;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ededed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #b4b4b4;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            padding: 10px 12px;
+            background: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            color: #ededed;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: #3ecf8e;
+            background: #1a1a1a;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-hint {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #2e2e2e;
+        }
+
+        /* Robot Details */
+        .robot-details-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+        }
+
+        .robot-info-card {
+            background: #1a1a1a;
+            border: 1px solid #2e2e2e;
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .robot-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2e2e2e;
+        }
+
+        .robot-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #38bdf8, #3ecf8e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .robot-title {
+            flex: 1;
+        }
+
+        .robot-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ededed;
+            margin-bottom: 4px;
+        }
+
+        .robot-subtitle {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .info-item {
+            margin-bottom: 16px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #ededed;
+            font-weight: 500;
+        }
+
+        /* Logs Section */
+        .logs-section {
+            background: #1a1a1a;
+            border: 1px solid #2e2e2e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .logs-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #2e2e2e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logs-filter {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .logs-content {
+            padding: 24px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 16px;
+            border-left: 3px solid;
+            background: #181818;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .log-item:hover {
+            background: #1f1f1f;
+            transform: translateX(2px);
+        }
+
+        .log-item.info {
+            border-left-color: #38bdf8;
+        }
+
+        .log-item.warning {
+            border-left-color: #fbbf24;
+        }
+
+        .log-item.error {
+            border-left-color: #f04438;
+        }
+
+        .log-item.success {
+            border-left-color: #3ecf8e;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .log-time {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .log-type {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .log-type.info {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+        }
+
+        .log-type.warning {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .log-type.error {
+            background: rgba(240, 68, 56, 0.1);
+            color: #f04438;
+        }
+
+        .log-type.success {
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+        }
+
+        .log-message {
+            font-size: 13px;
+            color: #ededed;
+            line-height: 1.5;
+        }
+
+        .log-details {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+            font-family: monospace;
+            background: #1a1a1a;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-top: 1px solid #2e2e2e;
+            background: #1a1a1a;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            color: #b4b4b4;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #2a2a2a;
+            color: #ededed;
+            border-color: #3ecf8e;
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-pages {
+            display: flex;
+            gap: 4px;
+        }
+
+        .page-btn {
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: transparent;
+            border: 1px solid #2e2e2e;
+            color: #b4b4b4;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover {
+            background: #2a2a2a;
+            color: #ededed;
+        }
+
+        .page-btn.active {
+            background: #3ecf8e;
+            color: #0f1419;
+            border-color: #3ecf8e;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 20, 25, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #2e2e2e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ededed;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid #2e2e2e;
+            color: #b4b4b4;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #2a2a2a;
+            color: #ededed;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .robot-details-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-top: 90px;
+                padding: 16px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs-header {
+                flex-wrap: wrap;
+            }
+            
+            .tab-btn {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-input, .filter-select {
+                width: 100%;
+            }
+            
+            .robots-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            /* Ajustes para submenu em mobile */
+            .nav-item:hover .submenu {
+                display: none;
+            }
+            
+            .nav-item.active .submenu {
+                display: block;
+                position: static;
+                box-shadow: none;
+                border: none;
+                margin-top: 0;
+            }
+            
+            .submenu-link {
+                padding: 10px 16px 10px 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal for Robot Details -->
+    <div id="robotModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Detalhes do Robô</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="robot-details-container" id="modalContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Superior -->
+    <div class="top-header">
+        <div class="header-container">
+            <div class="header-main">
+                <div class="logo">
+                    <i class="fa-sharp-duotone fa-solid fa-g"></i>
+                    <span>GovConnect</span>
+                </div>
+
+                <div class="header-right">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Buscar...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    <div class="header-icon">
+                        <i class="fas fa-bell"></i>
+                        <div class="notification-badge"></div>
+                    </div>
+                    <div class="header-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="header-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+
+                    <div class="user-section">
+                        <div class="user-avatar">WF</div>
+                        <div class="user-info">
+                            <div class="user-name">Wagner Florêncio</div>
+                            <div class="user-role">Admin • N: 786</div>
+                        </div>
+                        <i class="fas fa-chevron-down" style="color: #888; font-size: 10px;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu de Navegação -->
+            <div class="nav-bar">
+                <div class="nav-menu">
+                    <div class="nav-item">
+                        <a href="#visao-geral" class="nav-link">
+                            <i class="fas fa-home"></i>
+                            Visão Geral
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#monit-coleta" class="nav-link">
+                            <i class="fas fa-database"></i>
+                            Monit. Coleta
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#dashboard-sistema" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            Dashboard Sistema
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#consulta-prefeituras" class="nav-link">
+                            <i class="fas fa-building"></i>
+                            Consulta Prefeituras
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#usuarios" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            Usuários
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#clusters" class="nav-link">
+                            <i class="fas fa-th"></i>
+                            Clusters
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#relatorios" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            Relatórios
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#ferramentas" class="nav-link active">
+                            <i class="fas fa-tools"></i>
+                            Ferramentas
+                            <i class="fas fa-chevron-down" style="font-size: 10px; margin-left: 4px;"></i>
+                        </a>
+                        <div class="submenu">
+                            <a href="#gerenciamento-robos" class="submenu-link active">
+                                <i class="fas fa-robot"></i>
+                                Gerenciamento de Robôs
+                            </a>
+                            <div class="submenu-divider"></div>
+                            <a href="#ferramenta-1" class="submenu-link">
+                                <i class="fas fa-wrench"></i>
+                                Ferramenta 1
+                            </a>
+                            <a href="#ferramenta-2" class="submenu-link">
+                                <i class="fas fa-cog"></i>
+                                Ferramenta 2
+                            </a>
+                            <a href="#ferramenta-3" class="submenu-link">
+                                <i class="fas fa-sliders-h"></i>
+                                Ferramenta 3
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#suporte" class="nav-link">
+                            <i class="fas fa-life-ring"></i>
+                            Suporte
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title-section">
+                <h1 class="page-title">Gerenciamento de Robôs</h1>
+                <div class="breadcrumb">
+                    <span>Início</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>Ferramentas</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="active">Gerenciamento de Robôs</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                    Atualizar
+                </button>
+                <div class="status-badge-header">
+                    12 Robôs Ativos
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="listar">
+                    <i class="fas fa-list"></i>
+                    Listar Robôs
+                </button>
+                <button class="tab-btn" data-tab="criar">
+                    <i class="fas fa-plus-circle"></i>
+                    Criar/Editar Robô
+                </button>
+                <button class="tab-btn" data-tab="detalhes">
+                    <i class="fas fa-info-circle"></i>
+                    Detalhes do Robô
+                </button>
+            </div>
+
+            <!-- Listar Robôs Tab -->
+            <div id="listar" class="tab-content active">
+                <!-- Search and Filter Bar -->
+                <div class="filter-bar">
+                    <input type="text" class="filter-input" placeholder="Buscar robôs..." id="searchInput">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">Todos os status</option>
+                        <option value="active">Ativo</option>
+                        <option value="paused">Pausado</option>
+                        <option value="error">Erro</option>
+                    </select>
+                    <select class="filter-select" id="typeFilter">
+                        <option value="">Todos os tipos</option>
+                        <option value="scanner">Scanner</option>
+                        <option value="automation">Automação</option>
+                        <option value="collector">Coletor</option>
+                    </select>
+                    <button class="btn" onclick="clearFilters()">
+                        <i class="fas fa-times"></i>
+                        Limpar
+                    </button>
+                    <button class="btn btn-primary" onclick="openCreateForm()">
+                        <i class="fas fa-plus"></i>
+                        Novo Robô
+                    </button>
+                </div>
+
+                <!-- Robots Table -->
+                <table class="robots-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                            <th>Última Execução</th>
+                            <th>Próxima Execução</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="robotsTableBody">
+                        <!-- Robots will be loaded here -->
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <div class="pagination-info">
+                        Mostrando 1-10 de 45 robôs
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="pagination-pages">
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">4</button>
+                            <button class="page-btn">5</button>
+                        </div>
+                        <button class="pagination-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Criar/Editar Robô Tab -->
+            <div id="criar" class="tab-content">
+                <div class="form-container">
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-info-circle"></i>
+                            Informações Básicas
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Nome do Robô *</label>
+                                <input type="text" class="form-input" id="robotName" placeholder="Ex: Scanner Prefeituras SP">
+                                <div class="form-hint">Nome descritivo para identificar o robô</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tipo *</label>
+                                <select class="form-select" id="robotType">
+                                    <option value="">Selecione o tipo</option>
+                                    <option value="scanner">Scanner</option>
+                                    <option value="automation">Automação</option>
+                                    <option value="collector">Coletor</option>
+                                    <option value="validator">Validador</option>
+                                    <option value="processor">Processador</option>
+                                </select>
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Descrição</label>
+                                <textarea class="form-textarea" id="robotDescription" placeholder="Descreva a função deste robô..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-cogs"></i>
+                            Configurações
+                        </h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Agendamento</label>
+                                <select class="form-select" id="robotSchedule">
+                                    <option value="manual">Manual</option>
+                                    <option value="hourly">A cada hora</option>
+                                    <option value="daily">Diariamente</option>
+                                    <option value="weekly">Semanalmente</option>
+                                    <option value="monthly">Mensalmente</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Timeout (minutos)</label>
+                                <input type="number" class="form-input" id="robotTimeout" value="30" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Tentativas</label>
+                                <input type="number" class="form-input" id="robotRetries" value="3" min="1" max="10">
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Parâmetros (JSON)</label>
+                                <textarea class="form-textarea" id="robotParams" placeholder='{"url": "https://exemplo.com", "depth": 2}'>
+{"url": "https://exemplo.com", "timeout": 30000, "retries": 3}</textarea>
+                                <div class="form-hint">Configurações específicas para execução do robô</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn" onclick="resetForm()">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                        <button class="btn" onclick="testRobot()">
+                            <i class="fas fa-vial"></i>
+                            Testar
+                        </button>
+                        <button class="btn btn-primary" onclick="saveRobot()">
+                            <i class="fas fa-save"></i>
+                            Salvar Robô
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalhes do Robô Tab -->
+            <div id="detalhes" class="tab-content">
+                <div class="robot-details-container">
+                    <!-- Robot Info Sidebar -->
+                    <div class="robot-info-card">
+                        <div class="robot-header">
+                            <div class="robot-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="robot-title">
+                                <div class="robot-name">Scanner Prefeituras SP</div>
+                                <div class="robot-subtitle">Scanner • ID: ROB-001</div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value">
+                                <span class="status-badge status-active">Ativo</span>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Última Execução</div>
+                            <div class="info-value">10/02 14:30:22</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Próxima Execução</div>
+                            <div class="info-value">10/02 15:30:00</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Tentativas Totais</div>
+                            <div class="info-value">1.247</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Taxa de Sucesso</div>
+                            <div class="info-value">97.8%</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Criado em</div>
+                            <div class="info-value">15/01/2024</div>
+                        </div>
+
+                        <div class="info-item">
+                            <div class="info-label">Responsável</div>
+                            <div class="info-value">Wagner Florêncio</div>
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="runRobotNow()">
+                            <i class="fas fa-play"></i>
+                            Executar Agora
+                        </button>
+                    </div>
+
+                    <!-- Logs Section -->
+                    <div class="logs-section">
+                        <div class="logs-header">
+                            <h3 class="form-section-title">
+                                <i class="fas fa-clipboard-list"></i>
+                                Logs de Execução
+                            </h3>
+                            <div class="logs-filter">
+                                <select class="filter-select" id="logLevelFilter">
+                                    <option value="">Todos os níveis</option>
+                                    <option value="info">Info</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="error">Error</option>
+                                    <option value="success">Success</option>
+                                </select>
+                                <select class="filter-select" id="logPeriodFilter">
+                                    <option value="today">Hoje</option>
+                                    <option value="7days">Últimos 7 dias</option>
+                                    <option value="30days">Últimos 30 dias</option>
+                                </select>
+                                <button class="btn" onclick="exportLogs()">
+                                    <i class="fas fa-download"></i>
+                                    Exportar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="logs-content" id="logsContent">
+                            <!-- Logs will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for robots
+        const robotsData = [
+            {
+                id: 1,
+                name: "Scanner Prefeituras SP",
+                type: "scanner",
+                status: "active",
+                lastRun: "10/02 14:30:22",
+                nextRun: "10/02 15:30:00",
+                description: "Scanner automático de portais de prefeituras de SP",
+                createdAt: "15/01/2024",
+                createdBy: "Wagner Florêncio",
+                attempts: 1247,
+                successRate: 97.8
+            },
+            {
+                id: 2,
+                name: "Coletor Dados Educação",
+                type: "collector",
+                status: "paused",
+                lastRun: "09/02 22:15:10",
+                nextRun: "10/02 22:15:00",
+                description: "Coleta dados de educação das prefeituras",
+                createdAt: "20/01/2024",
+                createdBy: "Ana Silva",
+                attempts: 856,
+                successRate: 94.2
+            },
+            {
+                id: 3,
+                name: "Validador Arrecadações",
+                type: "validator",
+                status: "active",
+                lastRun: "10/02 08:45:33",
+                nextRun: "10/02 12:00:00",
+                description: "Valida dados de arrecadação municipal",
+                createdAt: "05/02/2024",
+                createdBy: "Carlos Santos",
+                attempts: 324,
+                successRate: 99.1
+            },
+            {
+                id: 4,
+                name: "Processador Despesas",
+                type: "processor",
+                status: "error",
+                lastRun: "09/02 18:20:15",
+                nextRun: "10/02 18:20:00",
+                description: "Processa dados de despesas públicas",
+                createdAt: "12/01/2024",
+                createdBy: "Maria Oliveira",
+                attempts: 1123,
+                successRate: 96.5
+            },
+            {
+                id: 5,
+                name: "Automação Saúde",
+                type: "automation",
+                status: "active",
+                lastRun: "10/02 09:10:45",
+                nextRun: "10/02 13:10:00",
+                description: "Automação de coleta de dados de saúde",
+                createdAt: "28/01/2024",
+                createdBy: "Pedro Costa",
+                attempts: 678,
+                successRate: 98.3
+            }
+        ];
+
+        // Sample logs data
+        const logsData = [
+            {
+                id: 1,
+                timestamp: "10/02 14:30:22",
+                type: "info",
+                message: "Execução iniciada",
+                details: "Iniciando processo de coleta para 45 prefeituras"
+            },
+            {
+                id: 2,
+                timestamp: "10/02 14:32:10",
+                type: "success",
+                message: "Conexão estabelecida com sucesso",
+                details: "API respondendo em 240ms"
+            },
+            {
+                id: 3,
+                timestamp: "10/02 14:35:45",
+                type: "warning",
+                message: "Timeout na requisição 23",
+                details: "Prefeitura de São José dos Campos não respondeu em 30s"
+            },
+            {
+                id: 4,
+                timestamp: "10/02 14:40:18",
+                type: "error",
+                message: "Erro na extração de dados",
+                details: "Formato JSON inválido na resposta da API"
+            },
+            {
+                id: 5,
+                timestamp: "10/02 14:45:30",
+                type: "success",
+                message: "Execução concluída",
+                details: "Processados 44 de 45 prefeituras (97.8% de sucesso)"
+            }
+        ];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRobotsTable();
+            loadLogs();
+            setupEventListeners();
+        });
+
+        // Load robots into table
+        function loadRobotsTable() {
+            const tbody = document.getElementById('robotsTableBody');
+            tbody.innerHTML = '';
+            
+            robotsData.forEach(robot => {
+                const row = document.createElement('tr');
+                
+                // Get type icon
+                let typeIcon = 'fa-search';
+                let typeClass = 'scanner';
+                if (robot.type === 'automation') {
+                    typeIcon = 'fa-cogs';
+                    typeClass = 'automation';
+                } else if (robot.type === 'collector') {
+                    typeIcon = 'fa-database';
+                    typeClass = 'collector';
+                } else if (robot.type === 'validator') {
+                    typeIcon = 'fa-check-circle';
+                    typeClass = 'scanner';
+                } else if (robot.type === 'processor') {
+                    typeIcon = 'fa-microchip';
+                    typeClass = 'automation';
+                }
+                
+                // Get status badge
+                let statusText = 'Ativo';
+                let statusClass = 'status-active';
+                if (robot.status === 'paused') {
+                    statusText = 'Pausado';
+                    statusClass = 'status-paused';
+                } else if (robot.status === 'error') {
+                    statusText = 'Erro';
+                    statusClass = 'status-error';
+                }
+                
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight: 500;">${robot.name}</div>
+                        <div style="font-size: 11px; color: #888;">${robot.description}</div>
+                    </td>
+                    <td>
+                        <div class="robot-type">
+                            <div class="robot-icon ${typeClass}">
+                                <i class="fas ${typeIcon}"></i>
+                            </div>
+                            <span>${robot.type.charAt(0).toUpperCase() + robot.type.slice(1)}</span>
+                        </div>
+                    </td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>${robot.lastRun}</td>
+                    <td>${robot.nextRun}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewRobot(${robot.id})" title="Ver detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit" onclick="editRobot(${robot.id})" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn run" onclick="runRobot(${robot.id})" title="Executar">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Load logs
+        function loadLogs() {
+            const logsContent = document.getElementById('logsContent');
+            logsContent.innerHTML = '';
+            
+            logsData.forEach(log => {
+                const logItem = document.createElement('div');
+                logItem.className = `log-item ${log.type}`;
+                
+                let typeText = 'INFO';
+                if (log.type === 'warning') typeText = 'WARNING';
+                else if (log.type === 'error') typeText = 'ERROR';
+                else if (log.type === 'success') typeText = 'SUCCESS';
+                
+                logItem.innerHTML = `
+                    <div class="log-header">
+                        <div class="log-time">${log.timestamp}</div>
+                        <div class="log-type ${log.type}">${typeText}</div>
+                    </div>
+                    <div class="log-message">${log.message}</div>
+                    ${log.details ? `<div class="log-details">${log.details}</div>` : ''}
+                `;
+                
+                logsContent.appendChild(logItem);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab switching
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Search filter
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', filterRobots);
+            
+            // Status filter
+            const statusFilter = document.getElementById('statusFilter');
+            statusFilter.addEventListener('change', filterRobots);
+            
+            // Type filter
+            const typeFilter = document.getElementById('typeFilter');
+            typeFilter.addEventListener('change', filterRobots);
+        }
+
+        // Filter robots based on search and filters
+        function filterRobots() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            const rows = document.querySelectorAll('#robotsTableBody tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                const type = row.cells[1].textContent.toLowerCase();
+                const status = row.cells[2].textContent.toLowerCase();
+                
+                let show = true;
+                
+                // Search filter
+                if (searchTerm && !name.includes(searchTerm)) {
+                    show = false;
+                }
+                
+                // Status filter
+                if (statusFilter) {
+                    let statusMatch = false;
+                    if (statusFilter === 'active' && status.includes('ativo')) statusMatch = true;
+                    if (statusFilter === 'paused' && status.includes('pausado')) statusMatch = true;
+                    if (statusFilter === 'error' && status.includes('erro')) statusMatch = true;
+                    if (!statusMatch) show = false;
+                }
+                
+                // Type filter
+                if (typeFilter && !type.includes(typeFilter)) {
+                    show = false;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('typeFilter').value = '';
+            filterRobots();
+        }
+
+        // Open create form
+        function openCreateForm() {
+            // Switch to create tab
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector('.tab-btn[data-tab="criar"]').classList.add('active');
+            document.getElementById('criar').classList.add('active');
+            
+            // Reset form
+            resetForm();
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('robotName').value = '';
+            document.getElementById('robotType').value = '';
+            document.getElementById('robotDescription').value = '';
+            document.getElementById('robotSchedule').value = 'manual';
+            document.getElementById('robotTimeout').value = '30';
+            document.getElementById('robotRetries').value = '3';
+            document.getElementById('robotParams').value = '{"url": "https://exemplo.com", "timeout": 30000, "retries": 3}';
+        }
+
+        // Test robot configuration
+        function testRobot() {
+            alert('Teste de configuração do robô iniciado. Verifique os logs para resultados.');
+            // In a real application, this would make an API call to test the robot configuration
+        }
+
+        // Save robot
+        function saveRobot() {
+            const name = document.getElementById('robotName').value;
+            const type = document.getElementById('robotType').value;
+            
+            if (!name || !type) {
+                alert('Por favor, preencha todos os campos obrigatórios (*)');
+                return;
+            }
+            
+            alert('Robô salvo com sucesso!');
+            // In a real application, this would make an API call to save the robot
+            // Then switch back to list tab
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector('.tab-btn[data-tab="listar"]').classList.add('active');
+            document.getElementById('listar').classList.add('active');
+            
+            // Refresh the table
+            loadRobotsTable();
+        }
+
+        // View robot details
+        function viewRobot(id) {
+            const robot = robotsData.find(r => r.id === id);
+            if (!robot) return;
+            
+            // Open modal with robot details
+            const modalContent = document.getElementById('modalContent');
+            
+            let typeIcon = 'fa-search';
+            let typeClass = 'scanner';
+            if (robot.type === 'automation') {
+                typeIcon = 'fa-cogs';
+                typeClass = 'automation';
+            } else if (robot.type === 'collector') {
+                typeIcon = 'fa-database';
+                typeClass = 'collector';
+            }
+            
+            let statusText = 'Ativo';
+            let statusClass = 'status-active';
+            if (robot.status === 'paused') {
+                statusText = 'Pausado';
+                statusClass = 'status-paused';
+            } else if (robot.status === 'error') {
+                statusText = 'Erro';
+                statusClass = 'status-error';
+            }
+            
+            modalContent.innerHTML = `
+                <div class="robot-info-card">
+                    <div class="robot-header">
+                        <div class="robot-avatar">
+                            <i class="fas ${typeIcon}"></i>
+                        </div>
+                        <div class="robot-title">
+                            <div class="robot-name">${robot.name}</div>
+                            <div class="robot-subtitle">${robot.type.charAt(0).toUpperCase() + robot.type.slice(1)} • ID: ROB-00${robot.id}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Descrição</div>
+                        <div class="info-value">${robot.description}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Última Execução</div>
+                        <div class="info-value">${robot.lastRun}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Próxima Execução</div>
+                        <div class="info-value">${robot.nextRun}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Tentativas Totais</div>
+                        <div class="info-value">${robot.attempts.toLocaleString()}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Taxa de Sucesso</div>
+                        <div class="info-value">${robot.successRate}%</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Criado em</div>
+                        <div class="info-value">${robot.createdAt}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Responsável</div>
+                        <div class="info-value">${robot.createdBy}</div>
+                    </div>
+                </div>
+
+                <div class="logs-section">
+                    <div class="logs-header">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-clipboard-list"></i>
+                            Logs de Execução Recentes
+                        </h3>
+                    </div>
+                    <div class="logs-content">
+                        ${logsData.map(log => `
+                            <div class="log-item ${log.type}">
+                                <div class="log-header">
+                                    <div class="log-time">${log.timestamp}</div>
+                                    <div class="log-type ${log.type}">${log.type.toUpperCase()}</div>
+                                </div>
+                                <div class="log-message">${log.message}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Open modal
+            document.getElementById('robotModal').classList.add('active');
+        }
+
+        // Edit robot
+        function editRobot(id) {
+            const robot = robotsData.find(r => r.id === id);
+            if (!robot) return;
+            
+            // Switch to edit tab and populate form
+            openCreateForm();
+            
+            // Populate form with robot data
+            document.getElementById('robotName').value = robot.name;
+            document.getElementById('robotType').value = robot.type;
+            document.getElementById('robotDescription').value = robot.description;
+            
+            // Note: In a real application, you would load the full robot data including schedule, timeout, etc.
+        }
+
+        // Run robot
+        function runRobot(id) {
+            const robot = robotsData.find(r => r.id === id);
+            if (!robot) return;
+            
+            if (confirm(`Executar robô "${robot.name}" agora?`)) {
+                alert(`Robô "${robot.name}" em execução...`);
+                // In a real application, this would trigger the robot execution via API
+            }
+        }
+
+        // Run robot now (from details tab)
+        function runRobotNow() {
+            alert('Robô em execução...');
+            // In a real application, this would trigger the robot execution via API
+        }
+
+        // Export logs
+        function exportLogs() {
+            alert('Logs exportados em formato CSV');
+            // In a real application, this would generate and download a CSV file
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('robotModal').classList.remove('active');
+        }
+
+        // Refresh data
+        function refreshData() {
+            alert('Dados atualizados');
+            // In a real application, this would reload data from the server
+            loadRobotsTable();
+            loadLogs();
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on background click
+        document.getElementById('robotModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

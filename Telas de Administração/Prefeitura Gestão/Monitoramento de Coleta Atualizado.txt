@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GovConnect - Monitoramento de Coletas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: #0f1419;
+            color: #ededed;
+            font-size: 13px;
+        }
+
+        /* Header Container Centralizado */
+        .header-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header Superior */
+        .top-header {
+            background: #181818;
+            border-bottom: 1px solid #2e2e2e;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header-main {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #3ecf8e;
+        }
+
+        .logo i {
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #b4b4b4;
+            position: relative;
+        }
+
+        .header-icon:hover {
+            background: #2a2a2a;
+            color: #ededed;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #3ecf8e;
+            border-radius: 50%;
+            border: 2px solid #181818;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-left: 12px;
+            border-left: 1px solid #2e2e2e;
+            padding-left: 20px;
+        }
+
+        .user-section:hover {
+            background: #2a2a2a;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3ecf8e, #2a9d8f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ededed;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* Menu de Navegação */
+        .nav-bar {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2e2e2e;
+            padding: 0 24px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            color: #b4b4b4;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            color: #ededed;
+            background: #2a2a2a;
+        }
+
+        .nav-link.active {
+            color: #3ecf8e;
+            border-bottom-color: #3ecf8e;
+        }
+
+        .nav-link i {
+            font-size: 12px;
+        }
+
+        /* Submenus Dropdown */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+            padding: 8px 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-item:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 16px;
+            color: #b4b4b4;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 400;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .dropdown-menu a:hover {
+            background: #2a2a2a;
+            color: #3ecf8e;
+            border-left-color: #3ecf8e;
+        }
+
+        .dropdown-menu a i {
+            width: 16px;
+            font-size: 11px;
+        }
+
+        .nav-link .dropdown-arrow {
+            margin-left: 4px;
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .nav-item:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 105px;
+            padding: 24px;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ededed;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .breadcrumb i {
+            font-size: 10px;
+        }
+
+        .breadcrumb .active {
+            color: #3ecf8e;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #2e2e2e;
+            background: transparent;
+            color: #b4b4b4;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #2a2a2a;
+            color: #ededed;
+            border-color: #3ecf8e;
+        }
+
+        .status-badge-header {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge-header::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3ecf8e;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Panel Container */
+        .panel-container {
+            background: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            padding: 16px 20px;
+            border-bottom: 1px solid #2e2e2e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ededed;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .panel-badge {
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .panel-body {
+            padding: 20px;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Table Styles */
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 250px;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #2e2e2e;
+            border-radius: 3px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .data-table th {
+            background: #2a2a2a;
+            color: #ededed;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid #2e2e2e;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #2e2e2e;
+            color: #b4b4b4;
+            vertical-align: middle;
+        }
+
+        .data-table tbody tr:hover {
+            background: #2a2a2a;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+            text-align: center;
+            min-width: 70px;
+        }
+
+        .status-success {
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+        }
+
+        .status-failure {
+            background: rgba(240, 68, 56, 0.1);
+            color: #f04438;
+        }
+
+        .status-pending {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .status-active {
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+        }
+
+        .status-inactive {
+            background: rgba(240, 68, 56, 0.1);
+            color: #f04438;
+        }
+
+        /* Form Controls */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            color: #b4b4b4;
+            font-weight: 500;
+        }
+
+        .form-input {
+            background: #0f1419;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #ededed;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3ecf8e;
+            background: #1a1a1a;
+        }
+
+        .form-input::placeholder {
+            color: #666;
+        }
+
+        .form-select {
+            background: #0f1419;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #ededed;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #3ecf8e;
+            background-color: #1a1a1a;
+        }
+
+        /* Metrics Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .metric-card:hover {
+            border-color: #3ecf8e;
+            transform: translateY(-2px);
+        }
+
+        .metric-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .metric-card.success .metric-icon {
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+        }
+
+        .metric-card.failure .metric-icon {
+            background: rgba(240, 68, 56, 0.1);
+            color: #f04438;
+        }
+
+        .metric-card.info .metric-icon {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+        }
+
+        .metric-card.warning .metric-icon {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ededed;
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #b4b4b4;
+            margin-bottom: 6px;
+        }
+
+        .metric-subtitle {
+            font-size: 10px;
+            color: #888;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+
+        /* Action Button */
+        .btn-action {
+            padding: 4px 8px;
+            border: 1px solid #2e2e2e;
+            background: transparent;
+            border-radius: 4px;
+            color: #b4b4b4;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-action:hover {
+            background: #2a2a2a;
+            color: #ededed;
+            border-color: #3ecf8e;
+        }
+
+        .btn-primary {
+            background: #3ecf8e;
+            color: #0f1419;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #36b57d;
+            color: #0f1419;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #b4b4b4;
+            border: 1px solid #2e2e2e;
+        }
+
+        .btn-secondary:hover {
+            background: #2a2a2a;
+            color: #ededed;
+            border-color: #3ecf8e;
+        }
+
+        /* Error Logs */
+        .error-log {
+            background: rgba(240, 68, 56, 0.05);
+            border: 1px solid rgba(240, 68, 56, 0.2);
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .error-log h4 {
+            color: #f04438;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-content {
+            background: rgba(15, 20, 25, 0.5);
+            border: 1px solid #2e2e2e;
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #f04438;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        /* Table Controls */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .table-filters {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-info {
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* Text Colors */
+        .text-blue {
+            color: #38bdf8;
+        }
+
+        .text-red {
+            color: #f04438;
+        }
+
+        .text-green {
+            color: #3ecf8e;
+        }
+
+        /* Responsive */
+        @media (max-width: 1640px) {
+            .header-container,
+            .main-content {
+                max-width: calc(100% - 48px);
+                margin-left: 24px;
+                margin-right: 24px;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .dashboard-grid,
+            .metrics-grid,
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container,
+            .main-content {
+                max-width: calc(100% - 32px);
+                margin-left: 16px;
+                margin-right: 16px;
+                padding: 0 16px;
+            }
+            
+            .main-content {
+                margin-top: 90px;
+                padding: 16px;
+            }
+            
+            .header-main {
+                padding: 0 16px;
+            }
+            
+            .nav-bar {
+                padding: 0 16px;
+                overflow-x: auto;
+            }
+            
+            .nav-menu {
+                min-width: max-content;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .data-table {
+                font-size: 11px;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 8px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-container,
+            .main-content {
+                max-width: calc(100% - 16px);
+                margin-left: 8px;
+                margin-right: 8px;
+                padding: 0 8px;
+            }
+            
+            .header-main {
+                padding: 0 8px;
+            }
+            
+            .nav-bar {
+                padding: 0 8px;
+            }
+            
+            .user-section {
+                margin-left: 0;
+                padding-left: 12px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Superior -->
+    <div class="top-header">
+        <div class="header-container">
+            <div class="header-main">
+                <div class="logo">
+                    <i class="fa-sharp-duotone fa-solid fa-g"></i>
+                    <span>GovConnect</span>
+                </div>
+
+                <div class="header-right">
+                    <div class="header-icon">
+                        <i class="fas fa-bell"></i>
+                        <div class="notification-badge"></div>
+                    </div>
+                    <div class="header-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="header-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+
+                    <div class="user-section">
+                        <div class="user-avatar">WF</div>
+                        <div class="user-info">
+                            <div class="user-name">Wagner Florêncio</div>
+                            <div class="user-role">Admin • N: 786</div>
+                        </div>
+                        <i class="fas fa-chevron-down" style="color: #888; font-size: 10px;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu de Navegação -->
+            <div class="nav-bar">
+                <div class="nav-menu">
+                    <div class="nav-item">
+                        <a href="#visao-geral" class="nav-link">
+                            <i class="fas fa-home"></i>
+                            Visão Geral
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-chart-bar"></i>
+                                Dashboard Resumo
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-chart-line"></i>
+                                Métricas Chave
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Indicadores
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-clipboard-list"></i>
+                                Relatório Diário
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#monit-coleta" class="nav-link active">
+                            <i class="fas fa-database"></i>
+                            Monit. Coleta
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-sync-alt"></i>
+                                Coletas Ativas
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-history"></i>
+                                Histórico de Coletas
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Alertas e Falhas
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-chart-pie"></i>
+                                Estatísticas
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#dashboard-sistema" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            Dashboard Sistema
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-server"></i>
+                                Status do Sistema
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-microchip"></i>
+                                Performance
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-file-alt"></i>
+                                Logs do Sistema
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-heartbeat"></i>
+                                Monitoramento
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#consulta-prefeituras" class="nav-link">
+                            <i class="fas fa-building"></i>
+                            Consulta Prefeituras
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-list"></i>
+                                Lista de Prefeituras
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-address-book"></i>
+                                Dados de Contato
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-file-contract"></i>
+                                Contratos Ativos
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-map-marked-alt"></i>
+                                Mapa de Cobertura
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#usuarios" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            Usuários
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-user-cog"></i>
+                                Gerenciar Usuários
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-user-shield"></i>
+                                Permissões
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-user-clock"></i>
+                                Atividade de Usuários
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-user-plus"></i>
+                                Novos Cadastros
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#clusters" class="nav-link">
+                            <i class="fas fa-th"></i>
+                            Clusters
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-sitemap"></i>
+                                Gerenciar Salas
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-calendar-alt"></i>
+                                Agendamentos
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-check-circle"></i>
+                                Disponibilidade
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-cogs"></i>
+                                Configurações
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#relatorios" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            Relatórios
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-chart-bar"></i>
+                                Relatórios Gerais
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-money-bill-wave"></i>
+                                Relatórios Financeiros
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-headset"></i>
+                                Relatórios de Atendimento
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-download"></i>
+                                Exportar Relatórios
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#ferramentas" class="nav-link">
+                            <i class="fas fa-tools"></i>
+                            Ferramentas
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-toolbox"></i>
+                                Ferramentas de Gestão
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-link"></i>
+                                Integrações
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-sliders-h"></i>
+                                Configurações Avançadas
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-code"></i>
+                                API e Webhooks
+                            </a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#suporte" class="nav-link">
+                            <i class="fas fa-life-ring"></i>
+                            Suporte
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#">
+                                <i class="fas fa-ticket-alt"></i>
+                                Abrir Chamado
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-comments"></i>
+                                Chat Online
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-book"></i>
+                                Base de Conhecimento
+                            </a>
+                            <a href="#">
+                                <i class="fas fa-phone-alt"></i>
+                                Telefones de Suporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title-section">
+                <h1 class="page-title">Monitoramento de Coletas</h1>
+                <div class="breadcrumb">
+                    <span>Início</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="active">Monitoramento Coletas</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn" onclick="atualizarDados()">
+                    <i class="fas fa-sync-alt"></i>
+                    Atualizar
+                </button>
+                <div class="status-badge-header">
+                    <i class="fas fa-server"></i>
+                    Sistema Ativo
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="panel-container">
+            <div class="panel-header">
+                <h3><i class="fas fa-filter"></i>Filtros de Pesquisa</h3>
+            </div>
+            <div class="panel-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" id="estadoFilter">
+                            <option value="">Todos</option>
+                            <option value="SP">São Paulo</option>
+                            <option value="RJ">Rio de Janeiro</option>
+                            <option value="MG">Minas Gerais</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Código IBGE</label>
+                        <input type="text" class="form-input" id="ibgeFilter" placeholder="Digite o código..." maxlength="7">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">Todos</option>
+                            <option value="sucesso">Sucesso</option>
+                            <option value="falha">Falha</option>
+                            <option value="andamento">Andamento</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data Inicial</label>
+                        <input type="date" class="form-input" id="dataInicial" value="2025-09-01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data Final</label>
+                        <input type="date" class="form-input" id="dataFinal" value="2025-09-30">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fontes</label>
+                        <select class="form-select" id="fontesFilter">
+                            <option value="">Todas</option>
+                            <option value="arrecadacoes">Arrecadações</option>
+                            <option value="educacao">Educação</option>
+                            <option value="saude">Saúde</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: flex-end;">
+                    <div style="flex: 1;">
+                        <label class="form-label">Buscar por Nome</label>
+                        <input type="text" class="form-input" id="buscarFonte" placeholder="Digite o nome da fonte...">
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary" onclick="filtrar()">
+                            <i class="fas fa-filter"></i>
+                            Filtrar
+                        </button>
+                        <button class="btn btn-secondary" onclick="limpar()">
+                            <i class="fas fa-eraser"></i>
+                            Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas Principais -->
+        <div class="metrics-grid">
+            <div class="metric-card success">
+                <div class="metric-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="metric-value">95%</div>
+                <div class="metric-label">Coletas Bem-Sucedidas</div>
+                <div class="metric-subtitle">1.200/1.260</div>
+            </div>
+            <div class="metric-card failure">
+                <div class="metric-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="metric-value">5%</div>
+                <div class="metric-label">Coletas com Falha</div>
+                <div class="metric-subtitle">60/1.260</div>
+            </div>
+            <div class="metric-card info">
+                <div class="metric-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="metric-value">2m 15s</div>
+                <div class="metric-label">Tempo Médio</div>
+                <div class="metric-subtitle">por coleta</div>
+            </div>
+            <div class="metric-card warning">
+                <div class="metric-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="metric-value">12 GB</div>
+                <div class="metric-label">Volume de Dados</div>
+                <div class="metric-subtitle">processados hoje</div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts-grid">
+            <div class="panel-container">
+                <div class="panel-header">
+                    <h3><i class="fas fa-chart-pie"></i>Status das Últimas Coletas</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-container">
+                <div class="panel-header">
+                    <h3><i class="fas fa-chart-line"></i>Tempo de Execução</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="chart-container">
+                        <canvas id="executionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Últimas Coletas -->
+        <div class="panel-container dashboard-full">
+            <div class="panel-header">
+                <h3><i class="fas fa-list-ul"></i>Últimas Coletas</h3>
+                <div class="panel-badge">Total: 5/5</div>
+            </div>
+            <div class="panel-body">
+                <div class="table-controls">
+                    <div class="table-filters">
+                        <select class="form-select" id="tableStatusFilter" style="width: 150px;">
+                            <option value="">Todos Status</option>
+                            <option value="Sucesso">Sucesso</option>
+                            <option value="Falha">Falha</option>
+                            <option value="Andamento">Andamento</option>
+                        </select>
+                        <input type="text" class="form-input" id="tableSearch" placeholder="Buscar..." style="width: 180px;">
+                    </div>
+                    <div class="pagination-controls">
+                        <span class="page-info" id="pageInfo">Página 1 de 1</span>
+                        <button class="btn-action" id="prevPage">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="btn-action" id="nextPage">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="data" data-order="desc">Data/Hora <i class="fas fa-sort-down"></i></th>
+                                <th data-sort="ibge">Código IBGE <i class="fas fa-sort"></i></th>
+                                <th data-sort="cidade">Cidade <i class="fas fa-sort"></i></th>
+                                <th data-sort="fonte">Fonte <i class="fas fa-sort"></i></th>
+                                <th data-sort="status">Status <i class="fas fa-sort"></i></th>
+                                <th data-sort="tempo">Tempo <i class="fas fa-sort"></i></th>
+                                <th data-sort="volume">Volume <i class="fas fa-sort"></i></th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coletasTableBody">
+                            <!-- Dados serão inseridos via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs de Erro -->
+        <div class="panel-container">
+            <div class="panel-header">
+                <h3><i class="fas fa-exclamation-triangle"></i>Logs de Erro</h3>
+            </div>
+            <div class="panel-body">
+                <div class="error-log">
+                    <h4><i class="fas fa-bug"></i>Erros Detectados</h4>
+                    <div class="error-content">
+                        <strong>Erro na coleta Educação (30/09/25 13:45):</strong><br>
+                        Falha na autenticação: Token expirado. Renovar credenciais de acesso.<br><br>
+                        <strong>Erro na coleta Transferegov (30/09/25 10:45):</strong><br>
+                        Timeout na conexão: Serviço indisponível. Tentar novamente em alguns minutos.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+            <button class="btn btn-secondary" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i>
+                Voltar
+            </button>
+            <button class="btn btn-primary" onclick="atualizarDados()">
+                <i class="fas fa-sync-alt"></i>
+                Atualizar Dados
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Dados da tabela
+        const tableData = [
+            {
+                data: '2025-09-30 14:30',
+                ibge: '1100049',
+                cidade: 'Jaboticabal',
+                fonte: 'Arrecadações Municipais',
+                status: 'Sucesso',
+                tempo: 135,
+                volume: 1228
+            },
+            {
+                data: '2025-09-30 13:45',
+                ibge: '1100205',
+                cidade: 'Matão',
+                fonte: 'Educação',
+                status: 'Falha',
+                tempo: 32,
+                volume: 0
+            },
+            {
+                data: '2025-09-30 13:00',
+                ibge: '1302603',
+                cidade: 'Araraquara',
+                fonte: 'Saúde',
+                status: 'Andamento',
+                tempo: 0,
+                volume: 0
+            },
+            {
+                data: '2025-09-30 12:15',
+                ibge: '1400100',
+                cidade: 'Mauá',
+                fonte: 'Receitas Constitucionais',
+                status: 'Sucesso',
+                tempo: 108,
+                volume: 875
+            },
+            {
+                data: '2025-09-30 11:30',
+                ibge: '1501402',
+                cidade: 'Americana',
+                fonte: 'Despesa com Pessoal',
+                status: 'Sucesso',
+                tempo: 202,
+                volume: 2150
+            }
+        ];
+
+        let currentPage = 1;
+        const rowsPerPage = 5;
+        let currentSort = { column: 'data', direction: 'desc' };
+
+        function formatTime(seconds) {
+            if (seconds === 0) return '--';
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}m ${secs}s`;
+        }
+
+        function formatVolume(bytes) {
+            if (bytes === 0) return '--';
+            if (bytes < 1024) return bytes + ' MB';
+            return (bytes / 1024).toFixed(1) + ' GB';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('coletasTableBody');
+            tbody.innerHTML = '';
+
+            const filteredData = filterData();
+            const sortedData = sortData(filteredData);
+            
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            const pageData = sortedData.slice(startIndex, endIndex);
+
+            pageData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.data.replace('2025-09-30 ', '').replace('2025-09-30', '30/09/25')}</td>
+                    <td class="text-blue">${row.ibge}</td>
+                    <td>${row.cidade}</td>
+                    <td>${row.fonte}</td>
+                    <td>
+                        <span class="status-badge ${row.status === 'Sucesso' ? 'status-success' : 
+                            row.status === 'Falha' ? 'status-failure' : 'status-pending'}">
+                            <i class="fas ${row.status === 'Sucesso' ? 'fa-check' : 
+                                row.status === 'Falha' ? 'fa-times' : 'fa-clock'} me-1"></i>
+                            ${row.status}
+                        </span>
+                    </td>
+                    <td>${formatTime(row.tempo)}</td>
+                    <td>${formatVolume(row.volume)}</td>
+                    <td>
+                        <button class="btn-action" onclick="reprocessar('${row.ibge}', '${row.fonte}')">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                        <button class="btn-action" onclick="verLog('${row.ibge}', '${row.fonte}')">
+                            <i class="fas fa-file-alt"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updatePaginationInfo(filteredData.length);
+        }
+
+        function filterData() {
+            const estadoFilter = document.getElementById('estadoFilter').value;
+            const ibgeFilter = document.getElementById('ibgeFilter').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const fontesFilter = document.getElementById('fontesFilter').value;
+            const buscarFonte = document.getElementById('buscarFonte').value.toLowerCase();
+            const tableStatusFilter = document.getElementById('tableStatusFilter').value;
+            const tableSearch = document.getElementById('tableSearch').value.toLowerCase();
+
+            return tableData.filter(item => {
+                return (
+                    (estadoFilter === '' || true) &&
+                    (ibgeFilter === '' || item.ibge.toLowerCase().includes(ibgeFilter)) &&
+                    (statusFilter === '' || item.status.toLowerCase() === statusFilter) &&
+                    (fontesFilter === '' || item.fonte.toLowerCase().includes(fontesFilter)) &&
+                    (buscarFonte === '' || item.fonte.toLowerCase().includes(buscarFonte)) &&
+                    (tableStatusFilter === '' || item.status === tableStatusFilter) &&
+                    (tableSearch === '' ||
+                     item.ibge.toLowerCase().includes(tableSearch) ||
+                     item.cidade.toLowerCase().includes(tableSearch) ||
+                     item.fonte.toLowerCase().includes(tableSearch) ||
+                     item.status.toLowerCase().includes(tableSearch))
+                );
+            });
+        }
+
+        function sortData(data) {
+            return [...data].sort((a, b) => {
+                let valueA = a[currentSort.column];
+                let valueB = b[currentSort.column];
+
+                if (currentSort.column === 'data') {
+                    valueA = new Date(valueA);
+                    valueB = new Date(valueB);
+                }
+
+                if (typeof valueA === 'string') {
+                    return currentSort.direction === 'asc' 
+                        ? valueA.localeCompare(valueB)
+                        : valueB.localeCompare(valueA);
+                } else {
+                    return currentSort.direction === 'asc'
+                        ? valueA - valueB
+                        : valueB - valueA;
+                }
+            });
+        }
+
+        function updatePaginationInfo(totalItems) {
+            const totalPages = Math.ceil(totalItems / rowsPerPage);
+            document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${totalPages}`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        function initSorting() {
+            document.querySelectorAll('#coletasTableBody').closest('table').querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const column = th.getAttribute('data-sort');
+                    const currentOrder = th.getAttribute('data-order');
+                    
+                    // Reset all sort indicators
+                    document.querySelectorAll('th[data-sort]').forEach(t => {
+                        t.setAttribute('data-order', '');
+                        t.querySelector('i').className = 'fas fa-sort';
+                    });
+                    
+                    // Set new sort order
+                    currentSort.column = column;
+                    currentSort.direction = currentOrder === 'asc' ? 'desc' : 'asc';
+                    th.setAttribute('data-order', currentSort.direction);
+                    th.querySelector('i').className = `fas fa-sort-${currentSort.direction === 'asc' ? 'up' : 'down'}`;
+                    
+                    renderTable();
+                });
+            });
+        }
+
+        function initCharts() {
+            // Status Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sucesso', 'Falha', 'Andamento'],
+                    datasets: [{
+                        data: [1200, 60, 10],
+                        backgroundColor: ['#3ecf8e', '#f04438', '#fbbf24'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#b4b4b4',
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Execution Chart
+            const execCtx = document.getElementById('executionChart').getContext('2d');
+            new Chart(execCtx, {
+                type: 'line',
+                data: {
+                    labels: ['08:00', '10:00', '12:00', '14:00', '16:00'],
+                    datasets: [{
+                        label: 'Tempo (s)',
+                        data: [120, 135, 110, 145, 130],
+                        borderColor: '#3ecf8e',
+                        backgroundColor: 'rgba(62, 207, 142, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#b4b4b4'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: '#2e2e2e'
+                            },
+                            ticks: {
+                                color: '#b4b4b4'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: '#2e2e2e'
+                            },
+                            ticks: {
+                                color: '#b4b4b4'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Funções de Ação
+        function filtrar() {
+            currentPage = 1;
+            renderTable();
+        }
+
+        function limpar() {
+            document.getElementById('estadoFilter').value = '';
+            document.getElementById('ibgeFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('dataInicial').value = '2025-09-01';
+            document.getElementById('dataFinal').value = '2025-09-30';
+            document.getElementById('fontesFilter').value = '';
+            document.getElementById('buscarFonte').value = '';
+            document.getElementById('tableStatusFilter').value = '';
+            document.getElementById('tableSearch').value = '';
+            currentPage = 1;
+            renderTable();
+        }
+
+        function atualizarDados() {
+            const btn = document.querySelector('.btn[onclick="atualizarDados()"]');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showToast('Dados atualizados com sucesso!', 'success');
+            }, 1500);
+        }
+
+        function reprocessar(ibge, fonte) {
+            showToast(`Reprocessando coleta ${ibge} - ${fonte}`, 'info');
+        }
+
+        function verLog(ibge, fonte) {
+            showToast(`Abrindo log da coleta ${ibge} - ${fonte}`, 'info');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 24px;
+                background: ${type === 'success' ? '#3ecf8e' : '#fbbf24'};
+                color: white;
+                padding: 12px 18px;
+                border-radius: 25px;
+                font-size: 0.9rem;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+                z-index: 1000;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                border: 1px solid rgba(255,255,255,0.2);
+            `;
+            
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTable();
+            initCharts();
+            initSorting();
+            
+            // Adicionar eventos aos filtros
+            const filterInputs = ['estadoFilter', 'ibgeFilter', 'statusFilter', 'fontesFilter', 
+                                'buscarFonte', 'tableStatusFilter', 'tableSearch'];
+            
+            filterInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', () => {
+                    currentPage = 1;
+                    renderTable();
+                });
+                document.getElementById(id).addEventListener('change', () => {
+                    currentPage = 1;
+                    renderTable();
+                });
+            });
+            
+            // Paginação
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+            
+            document.getElementById('nextPage').addEventListener('click', () => {
+                const filteredData = filterData();
+                const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

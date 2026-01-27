@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>GovConnect - Recuperação de Senha</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* RESET E VARIÁVEIS GLOBAIS */
+        :root {
+            --primary-color: #3ecf8e;
+            --primary-dark: #34b87d;
+            --primary-light: rgba(62, 207, 142, 0.1);
+            --secondary-color: #38bdf8;
+            --secondary-light: rgba(56, 189, 248, 0.05);
+            --bg-color: #0f1419;
+            --bg-card: #181818;
+            --text-primary: #ededed;
+            --text-secondary: #888;
+            --border-color: #2e2e2e;
+            --success-color: #3ecf8e;
+            --warning-color: #fbbf24;
+            --danger-color: #ef4444;
+            
+            /* Breakpoints */
+            --breakpoint-xs: 320px;
+            --breakpoint-sm: 480px;
+            --breakpoint-md: 768px;
+            --breakpoint-lg: 1024px;
+            --breakpoint-xl: 1280px;
+            --breakpoint-xxl: 1536px;
+            
+            /* Spacing system */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-xxl: 3rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-md);
+            position: relative;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* ANIMAÇÕES DE FUNDO RESPONSIVAS */
+        .background-elements {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--primary-light);
+            animation: float 15s infinite linear;
+            opacity: 0.1;
+        }
+
+        .bubble-1 {
+            width: min(300px, 60vw);
+            height: min(300px, 60vw);
+            top: -10%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+
+        .bubble-2 {
+            width: min(200px, 40vw);
+            height: min(200px, 40vw);
+            bottom: -5%;
+            right: -5%;
+            background: var(--secondary-light);
+            animation-delay: -5s;
+            animation-duration: 20s;
+        }
+
+        .bubble-3 {
+            width: min(150px, 30vw);
+            height: min(150px, 30vw);
+            top: 20%;
+            right: 10%;
+            animation-delay: -10s;
+            animation-duration: 25s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(10px, 10px) rotate(90deg); }
+            50% { transform: translate(0, 20px) rotate(180deg); }
+            75% { transform: translate(-10px, 10px) rotate(270deg); }
+        }
+
+        /* CONTAINER PRINCIPAL */
+        .forgot-password-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: clamp(8px, 2vw, 12px);
+            padding: clamp(20px, 5vw, 40px);
+            width: 100%;
+            max-width: min(450px, 90vw);
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            margin: auto;
+        }
+
+        /* BOTÃO VOLTAR */
+        .back-button {
+            position: absolute;
+            top: clamp(15px, 3vw, 20px);
+            left: clamp(15px, 3vw, 20px);
+            background: #1a1a1a;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: clamp(12px, 3vw, 14px);
+            cursor: pointer;
+            padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
+            border-radius: clamp(4px, 1vw, 6px);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 1vw, 6px);
+            white-space: nowrap;
+        }
+
+        .back-button:hover {
+            background: #2a2a2a;
+            color: var(--text-primary);
+            border-color: var(--primary-color);
+            transform: translateX(-2px);
+        }
+
+        /* LOGO E MARCA */
+        .logo-section {
+            text-align: center;
+            margin-bottom: clamp(20px, 5vw, 30px);
+            margin-top: clamp(30px, 7vw, 50px);
+        }
+
+        .security-shield {
+            width: clamp(60px, 15vw, 80px);
+            height: clamp(60px, 15vw, 80px);
+            background: linear-gradient(135deg, var(--primary-color), #2a9d8f);
+            border-radius: 50%;
+            margin: 0 auto clamp(15px, 4vw, 20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(22px, 5vw, 28px);
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 10px 20px rgba(62, 207, 142, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .company-name {
+            font-size: clamp(24px, 6vw, 28px);
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: clamp(6px, 1.5vw, 8px);
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: clamp(12px, 3vw, 14px);
+            margin-bottom: clamp(20px, 5vw, 30px);
+        }
+
+        /* TÍTULO E DESCRIÇÃO */
+        .page-title {
+            font-size: clamp(20px, 5vw, 24px);
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: clamp(12px, 3vw, 15px);
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .page-description {
+            color: var(--text-secondary);
+            font-size: clamp(13px, 3.5vw, 14px);
+            line-height: 1.5;
+            text-align: center;
+            margin-bottom: clamp(20px, 5vw, 30px);
+            padding: 0 clamp(10px, 3vw, 0);
+        }
+
+        /* MENSAGEM DE SUCESSO */
+        .success-message {
+            display: none;
+            background: rgba(62, 207, 142, 0.1);
+            border: 1px solid rgba(62, 207, 142, 0.3);
+            color: var(--success-color);
+            border-radius: clamp(6px, 1.5vw, 8px);
+            padding: clamp(10px, 3vw, 12px) clamp(12px, 4vw, 16px);
+            margin-bottom: clamp(15px, 4vw, 20px);
+            text-align: center;
+            font-size: clamp(12px, 3vw, 13px);
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-message.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(6px, 1.5vw, 8px);
+        }
+
+        /* FORMULÁRIO */
+        .form-group {
+            margin-bottom: clamp(15px, 4vw, 20px);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: clamp(6px, 1.5vw, 8px);
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: clamp(12px, 3vw, 13px);
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: clamp(12px, 3vw, 16px);
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: clamp(13px, 3.5vw, 14px);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: clamp(10px, 3vw, 12px) clamp(12px, 4vw, 16px);
+            padding-left: clamp(38px, 10vw, 42px);
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: clamp(4px, 1vw, 6px);
+            font-size: clamp(13px, 3.5vw, 14px);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: #1a1a1a;
+            box-shadow: 0 0 0 clamp(2px, 0.5vw, 3px) rgba(62, 207, 142, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #666;
+            font-size: clamp(12px, 3vw, 14px);
+        }
+
+        /* BOTÃO DE RESET */
+        .reset-button {
+            width: 100%;
+            padding: clamp(10px, 3vw, 12px);
+            background: var(--primary-color);
+            color: var(--bg-color);
+            border: none;
+            border-radius: clamp(4px, 1vw, 6px);
+            font-size: clamp(13px, 3.5vw, 14px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: clamp(20px, 5vw, 25px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(6px, 1.5vw, 8px);
+            min-height: 44px; /* Tamanho mínimo para toque */
+        }
+
+        .reset-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(62, 207, 142, 0.2);
+        }
+
+        .reset-button:active {
+            transform: translateY(0);
+        }
+
+        .reset-button.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* CAIXA DE INFORMAÇÃO */
+        .info-box {
+            background: rgba(62, 207, 142, 0.05);
+            border: 1px solid rgba(62, 207, 142, 0.2);
+            border-radius: clamp(6px, 1.5vw, 8px);
+            padding: clamp(12px, 4vw, 16px);
+            margin-bottom: clamp(20px, 5vw, 25px);
+            text-align: center;
+        }
+
+        .info-icon {
+            font-size: clamp(18px, 4.5vw, 20px);
+            color: var(--primary-color);
+            margin-bottom: clamp(8px, 2vw, 10px);
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: clamp(6px, 1.5vw, 8px);
+            font-size: clamp(13px, 3.5vw, 14px);
+        }
+
+        .info-text {
+            color: var(--text-secondary);
+            font-size: clamp(12px, 3vw, 13px);
+            line-height: 1.4;
+        }
+
+        /* LINK DE VOLTA AO LOGIN */
+        .back-to-login {
+            text-align: center;
+            padding-top: clamp(15px, 4vw, 20px);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .back-to-login p {
+            color: var(--text-secondary);
+            font-size: clamp(12px, 3vw, 14px);
+        }
+
+        .back-to-login a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .back-to-login a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* RODAPÉ DO FORMULÁRIO */
+        .form-footer {
+            margin-top: clamp(20px, 5vw, 30px);
+            text-align: center;
+        }
+
+        .support-link {
+            color: var(--text-secondary);
+            font-size: clamp(11px, 2.5vw, 13px);
+        }
+
+        .support-link a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .support-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* ANIMAÇÃO DE LOADING */
+        .spinner {
+            width: clamp(14px, 3.5vw, 16px);
+            height: clamp(14px, 3.5vw, 16px);
+            border: 2px solid rgba(15, 20, 25, 0.3);
+            border-top: 2px solid var(--bg-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .reset-button.loading .spinner {
+            display: block;
+        }
+
+        .reset-button.loading span {
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* PONTOS DECORATIVOS */
+        .decorative-dots {
+            position: fixed;
+            top: clamp(15px, 3vw, 30px);
+            right: clamp(15px, 3vw, 30px);
+            display: flex;
+            gap: clamp(3px, 0.8vw, 4px);
+            z-index: 2;
+        }
+
+        .dot {
+            width: clamp(6px, 1.5vw, 8px);
+            height: clamp(6px, 1.5vw, 8px);
+            border-radius: 50%;
+            background: #2e2e2e;
+        }
+
+        .dot:nth-child(1) { background: var(--primary-color); }
+        .dot:nth-child(2) { background: var(--secondary-color); }
+        .dot:nth-child(3) { background: var(--warning-color); }
+
+        /* ANIMAÇÃO DO ESCUDO */
+        @keyframes gentleBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .security-shield {
+            animation: pulse 2s infinite, gentleBounce 3s ease-in-out infinite;
+        }
+
+        /* MEDIA QUERIES ESPECÍFICAS */
+        
+        /* Telas muito pequenas (menos de 320px) */
+        @media (max-width: 319px) {
+            body {
+                padding: var(--space-xs);
+            }
+            
+            .forgot-password-container {
+                max-width: 95vw;
+                padding: var(--space-md);
+            }
+            
+            .back-button {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: var(--space-md);
+                width: 100%;
+            }
+            
+            .logo-section {
+                margin-top: 0;
+            }
+        }
+
+        /* Smartphones (320px - 480px) */
+        @media (min-width: 320px) and (max-width: 480px) {
+            .background-elements {
+                display: none; /* Desativa animações pesadas em mobile */
+            }
+            
+            .decorative-dots {
+                display: none; /* Remove elementos decorativos */
+            }
+            
+            .page-description {
+                font-size: 12px;
+            }
+        }
+
+        /* Tablets (481px - 768px) */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .forgot-password-container {
+                max-width: 85vw;
+            }
+            
+            .bubble {
+                opacity: 0.05; /* Reduz opacidade para melhor performance */
+            }
+        }
+
+        /* Desktops pequenos (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .forgot-password-container {
+                max-width: 70vw;
+            }
+        }
+
+        /* Desktops grandes (acima de 1024px) */
+        @media (min-width: 1025px) {
+            body {
+                padding: var(--space-xl);
+            }
+            
+            .forgot-password-container {
+                max-width: 450px;
+            }
+            
+            .bubble {
+                opacity: 0.1;
+            }
+        }
+
+        /* Telas muito largas (acima de 1440px) */
+        @media (min-width: 1440px) {
+            html {
+                font-size: 18px;
+            }
+            
+            .forgot-password-container {
+                max-width: 500px;
+                padding: var(--space-xxl);
+            }
+        }
+
+        /* Modo paisagem em dispositivos móveis */
+        @media (max-height: 600px) and (orientation: landscape) {
+            body {
+                align-items: flex-start;
+                padding-top: var(--space-md);
+                min-height: auto;
+            }
+            
+            .forgot-password-container {
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            .logo-section {
+                margin-top: 0;
+            }
+        }
+
+        /* Ajustes para alto contraste e acessibilidade */
+        @media (prefers-contrast: high) {
+            .form-input {
+                border: 2px solid var(--border-color);
+            }
+            
+            .form-input:focus {
+                border-width: 3px;
+            }
+        }
+
+        /* Suporte a dark mode do sistema */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #0a0e12;
+                --bg-card: #121212;
+                --text-primary: #f0f0f0;
+            }
+        }
+
+        /* Impressão */
+        @media print {
+            .forgot-password-container {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                color: #000;
+                background: #fff;
+            }
+            
+            .back-button, .decorative-dots, .background-elements {
+                display: none;
+            }
+        }
+
+        /* Melhorias de toque para dispositivos touch */
+        @media (hover: none) and (pointer: coarse) {
+            .reset-button:hover {
+                transform: none;
+            }
+            
+            .back-button:hover {
+                transform: none;
+            }
+            
+            .form-input {
+                font-size: 16px; /* Previne zoom em iOS */
+            }
+            
+            .reset-button, .back-button, .form-input {
+                min-height: 44px; /* Tamanho mínimo recomendado para toque */
+            }
+        }
+
+        /* Suporte a telas de alta densidade */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .forgot-password-container {
+                border-width: 0.5px;
+            }
+        }
+
+        /* Animações reduzidas para usuários que preferem */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            .security-shield {
+                animation: none;
+            }
+            
+            .bubble {
+                animation: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Elementos de fundo animados -->
+    <div class="background-elements">
+        <div class="bubble bubble-1"></div>
+        <div class="bubble bubble-2"></div>
+        <div class="bubble bubble-3"></div>
+    </div>
+
+    <!-- Pontos decorativos -->
+    <div class="decorative-dots">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+
+    <!-- Container principal -->
+    <div class="forgot-password-container">
+        <button class="back-button" onclick="goBackToLogin()" aria-label="Voltar para o login">
+            <i class="fas fa-arrow-left"></i> <span>Voltar</span>
+        </button>
+
+        <!-- Logo e marca -->
+        <div class="logo-section">
+            <div class="security-shield" role="img" aria-label="Escudo de segurança GovConnect">
+                <i class="fa-solid fa-g"></i>
+            </div>
+            <h1 class="company-name">GovConnect</h1>
+            <p class="subtitle">Sistema de Gestão Governamental</p>
+        </div>
+
+        <!-- Título e descrição -->
+        <h2 class="page-title">Recuperação de Senha</h2>
+        <p class="page-description">
+            Digite o e-mail associado à sua conta. Enviaremos um link para redefinir sua senha.
+        </p>
+
+        <!-- Mensagem de sucesso -->
+        <div class="success-message" id="successMessage" role="alert" aria-live="polite">
+            <i class="fas fa-check-circle"></i> 
+            <span>Link de recuperação enviado! Verifique sua caixa de entrada.</span>
+        </div>
+
+        <!-- Formulário -->
+        <form id="forgotPasswordForm" novalidate>
+            <div class="form-group">
+                <label for="email">Endereço de E-mail</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope" aria-hidden="true"></i>
+                    <input type="email" 
+                           id="email" 
+                           name="email" 
+                           class="form-input" 
+                           placeholder="usuario@exemplo.com" 
+                           required
+                           autocomplete="email"
+                           aria-required="true"
+                           aria-describedby="emailHelp">
+                </div>
+                <div id="emailHelp" class="sr-only">Digite seu endereço de e-mail registrado</div>
+            </div>
+
+            <button type="submit" class="reset-button" id="resetBtn" aria-label="Enviar link de recuperação de senha">
+                <div class="spinner" aria-hidden="true"></div>
+                <span>Enviar Link de Recuperação</span>
+            </button>
+        </form>
+
+        <!-- Caixa de informação -->
+        <div class="info-box">
+            <div class="info-icon">
+                <i class="fas fa-info-circle" aria-hidden="true"></i>
+            </div>
+            <div class="info-title">Importante</div>
+            <div class="info-text">
+                O link de recuperação é válido por 1 hora. 
+                Verifique sua pasta de spam caso não encontre o e-mail.
+            </div>
+        </div>
+
+        <!-- Link de volta ao login -->
+        <div class="back-to-login">
+            <p>Lembrou sua senha? <a href="#" onclick="goBackToLogin()">Voltar ao login</a></p>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="form-footer">
+            <p class="support-link">
+                Precisa de ajuda? <a href="#" onclick="contactSupport()">Entre em contato com o suporte</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Função para voltar ao login
+        function goBackToLogin() {
+            alert('Redirecionando para a tela de login...');
+            // window.location.href = '/login';
+        }
+
+        // Função de contato com suporte
+        function contactSupport() {
+            alert('Abrindo página de suporte...');
+            // window.location.href = '/suporte';
+        }
+
+        // Validação e envio do formulário
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const resetBtn = document.getElementById('resetBtn');
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
+            const successMessage = document.getElementById('successMessage');
+            
+            // Validação básica
+            if (!email) {
+                showError('Por favor, digite seu e-mail.');
+                emailInput.focus();
+                return;
+            }
+
+            // Validação de formato de e-mail
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('Por favor, digite um e-mail válido.');
+                emailInput.focus();
+                return;
+            }
+            
+            // Estado de loading
+            resetBtn.classList.add('loading');
+            resetBtn.disabled = true;
+            
+            // Simulação de requisição AJAX
+            setTimeout(() => {
+                resetBtn.classList.remove('loading');
+                resetBtn.disabled = false;
+                
+                // Mostrar mensagem de sucesso
+                successMessage.classList.add('show');
+                
+                // Limpar formulário
+                emailInput.value = '';
+                
+                // Esconder mensagem após 5 segundos
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                }, 5000);
+                
+                // Foco de volta no input
+                emailInput.focus();
+                
+            }, 2000);
+        });
+
+        // Função para mostrar erros
+        function showError(message) {
+            // Remover mensagens de erro anteriores
+            const existingError = document.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Criar nova mensagem de erro
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.style.cssText = `
+                background: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                color: #ef4444;
+                border-radius: 6px;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                text-align: center;
+                font-size: 13px;
+                animation: slideIn 0.5s ease;
+            `;
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            
+            // Inserir antes do formulário
+            const form = document.getElementById('forgotPasswordForm');
+            form.parentNode.insertBefore(errorDiv, form);
+            
+            // Remover após 5 segundos
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+        }
+
+        // Efeitos de foco nos inputs
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentNode.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentNode.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Atalhos de teclado
+        document.addEventListener('keydown', function(e) {
+            // ESC volta ao login
+            if (e.key === 'Escape') {
+                goBackToLogin();
+            }
+            
+            // Ctrl/Cmd + Enter envia o formulário
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                const form = document.getElementById('forgotPasswordForm');
+                if (form) {
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        // Foco automático no input de email
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailInput = document.getElementById('email');
+            if (emailInput) {
+                setTimeout(() => {
+                    emailInput.focus();
+                }, 300);
+            }
+        });
+
+        // Animação de entrada do container
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.querySelector('.forgot-password-container');
+            if (container) {
+                container.style.opacity = '0';
+                container.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    container.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    container.style.opacity = '1';
+                    container.style.transform = 'translateY(0)';
+                }, 100);
+            }
+        });
+
+        // Detectar orientação da tela
+        function handleOrientationChange() {
+            if (window.matchMedia("(orientation: landscape)").matches && window.innerHeight < 600) {
+                document.body.classList.add('landscape-mode');
+            } else {
+                document.body.classList.remove('landscape-mode');
+            }
+        }
+
+        // Inicializar detecção de orientação
+        window.addEventListener('resize', handleOrientationChange);
+        window.addEventListener('orientationchange', handleOrientationChange);
+        handleOrientationChange();
+
+        // Classe CSS para elementos escondidos para leitores de tela
+        const style = document.createElement('style');
+        style.textContent = `
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

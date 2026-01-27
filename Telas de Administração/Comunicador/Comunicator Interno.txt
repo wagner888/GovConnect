@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comunicador Interno - Empresa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            height: 100vh;
+            overflow: hidden;
+            color: #e0e0e0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(25, 25, 28, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            margin: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Sidebar - Estilo Supabase */
+        .sidebar {
+            width: 280px;
+            background: #1e1e1e;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            background: linear-gradient(135deg, #3ecf8e 0%, #329c6e 100%);
+            text-align: center;
+        }
+
+        .company-logo {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 8px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: #3ecf8e;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            background: #252525;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #3ecf8e 0%, #2a7d5d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .search-bar {
+            padding: 16px 20px;
+            border-bottom: 1px solid #333;
+            background: #252525;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #1e1e1e;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input::placeholder {
+            color: #888;
+        }
+
+        .search-input:focus {
+            border-color: #3ecf8e;
+            box-shadow: 0 0 0 2px rgba(62, 207, 142, 0.1);
+        }
+
+        .contacts-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .contact-item:hover {
+            background: #2a2a2a;
+        }
+
+        .contact-item.active {
+            background: linear-gradient(135deg, rgba(62, 207, 142, 0.1), rgba(50, 156, 110, 0.1));
+            border-left: 3px solid #3ecf8e;
+        }
+
+        .contact-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            border: 2px solid #1e1e1e;
+        }
+
+        .status-online { background: #3ecf8e; }
+        .status-away { background: #f4a100; }
+        .status-busy { background: #ff4757; }
+        .status-offline { background: #666; }
+
+        .contact-info h4 {
+            margin-bottom: 2px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #f0f0f0;
+        }
+
+        .contact-info p {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* Main Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #1a1a1a;
+        }
+
+        .chat-header {
+            padding: 20px 24px;
+            background: #252525;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #3ecf8e 0%, #2a7d5d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 16px;
+            font-size: 16px;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            font-size: 16px;
+        }
+
+        .action-btn:hover {
+            background: #333;
+            border-color: #555;
+            transform: translateY(-1px);
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background: #1a1a1a;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.sent {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 65%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            position: relative;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.received .message-bubble {
+            background: #252525;
+            color: #f0f0f0;
+            border: 1px solid #333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.sent .message-bubble {
+            background: linear-gradient(135deg, #3ecf8e 0%, #2a7d5d 100%);
+            color: white;
+            border: 1px solid #2a7d5d;
+            box-shadow: 0 2px 8px rgba(62, 207, 142, 0.2);
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .message.received .message-time {
+            text-align: left;
+            color: #888;
+        }
+
+        .message.sent .message-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Message Input */
+        .message-input-container {
+            padding: 20px 24px;
+            background: #252525;
+            border-top: 1px solid #333;
+        }
+
+        .message-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid #444;
+            transition: all 0.2s ease;
+        }
+
+        .message-input-wrapper:focus-within {
+            border-color: #3ecf8e;
+            box-shadow: 0 0 0 2px rgba(62, 207, 142, 0.1);
+        }
+
+        .message-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 8px 12px;
+            font-size: 14px;
+            resize: none;
+            max-height: 100px;
+            color: #f0f0f0;
+            font-family: inherit;
+        }
+
+        .message-input::placeholder {
+            color: #888;
+        }
+
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #3ecf8e 0%, #2a7d5d 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+            font-size: 16px;
+        }
+
+        .send-btn:hover {
+            background: linear-gradient(135deg, #36b87d 0%, #247d55 100%);
+            transform: translateY(-1px);
+        }
+
+        .send-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .attachment-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 4px;
+            transition: all 0.2s ease;
+            font-size: 18px;
+        }
+
+        .attachment-btn:hover {
+            background: #2a2a2a;
+            color: #3ecf8e;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #888;
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .typing-dots {
+            display: flex;
+            margin-left: 8px;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3ecf8e;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: absolute;
+                left: -100%;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                height: 100vh;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .chat-area {
+                width: 100%;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+
+        /* Scrollbar customization */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #3ecf8e;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+    
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="company-logo">GC</div>
+                <h2 style="color: white; font-size: 18px;">Comunicador Interno</h2>
+            </div>
+            
+            <div class="user-profile">
+                <div class="user-avatar">SS</div>
+                <div>
+                    <h4>Silvano Sousa</h4>
+                    <p>Desenvolvedor</p>
+                </div>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="Buscar contatos..." id="searchInput">
+            </div>
+            
+            <div class="contacts-list" id="contactsList">
+                <div class="contact-item active" data-contact="silvano">
+                    <div class="contact-avatar" style="background: linear-gradient(135deg, #3ecf8e, #2a7d5d);">
+                        SS
+                        <div class="status-dot status-online"></div>
+                    </div>
+                    <div class="contact-info">
+                        <h4>Silvano Sousa</h4>
+                        <p>Desenvolvedor</p>
+                    </div>
+                </div>
+                
+                <div class="contact-item" data-contact="wagner">
+                    <div class="contact-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        WN
+                        <div class="status-dot status-away"></div>
+                    </div>
+                    <div class="contact-info">
+                        <h4>Wagner Naves</h4>
+                        <p>Desenvolvedor</p>
+                    </div>
+                </div>
+                
+                <div class="contact-item" data-contact="alexandre">
+                    <div class="contact-avatar" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
+                        AC
+                        <div class="status-dot status-online"></div>
+                    </div>
+                    <div class="contact-info">
+                        <h4>Alexandre Campanhão</h4>
+                        <p>Advogado</p>
+                    </div>
+                </div>
+                
+                <div class="contact-item" data-contact="rogerio">
+                    <div class="contact-avatar" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);">
+                        RR
+                        <div class="status-dot status-busy"></div>
+                    </div>
+                    <div class="contact-info">
+                        <h4>Rogério Rosa</h4>
+                        <p>Advogado</p>
+                    </div>
+                </div>
+                
+                <div class="contact-item" data-contact="equipe">
+                    <div class="contact-avatar" style="background: linear-gradient(135deg, #f4a100, #ff6b6b);">
+                        GE
+                        <div class="status-dot status-online"></div>
+                    </div>
+                    <div class="contact-info">
+                        <h4>Grupo Equipe</h4>
+                        <p>5 membros online</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-user-info">
+                    <div class="chat-avatar">SS</div>
+                    <div>
+                        <h3 id="currentChatName" style="color: #f0f0f0; font-size: 16px;">Silvano Sousa</h3>
+                        <p id="currentChatStatus" style="color: #3ecf8e; font-size: 13px;">Online agora</p>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="action-btn" title="Chamada de vídeo">📹</button>
+                    <button class="action-btn" title="Chamada de voz">📞</button>
+                    <button class="action-btn" title="Mais opções">⋯</button>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="message received">
+                    <div class="message-bubble">
+                        <div>Olá! Como está o andamento do projeto?</div>
+                        <div class="message-time">14:30</div>
+                    </div>
+                </div>
+                
+                <div class="message sent">
+                    <div class="message-bubble">
+                        <div>Oi! Está indo muito bem. Já finalizei a parte do frontend e agora estou trabalhando na integração com a API.</div>
+                        <div class="message-time">14:32</div>
+                    </div>
+                </div>
+                
+                <div class="message received">
+                    <div class="message-bubble">
+                        <div>Excelente! Vamos ter uma reunião amanhã para alinhar os próximos passos. Que horas fica melhor pra você?</div>
+                        <div class="message-time">14:35</div>
+                    </div>
+                </div>
+                
+                <div class="message sent">
+                    <div class="message-bubble">
+                        <div>Perfeito! Manhã seria ideal, que tal às 10h?</div>
+                        <div class="message-time">14:36</div>
+                    </div>
+                </div>
+                
+                <div class="message received">
+                    <div class="message-bubble">
+                        <div>10h funciona perfeitamente! Enviei a pauta da reunião no seu email.</div>
+                        <div class="message-time">14:38</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="message-input-container">
+                <div class="message-input-wrapper">
+                    <button class="attachment-btn" title="Anexar arquivo">📎</button>
+                    <textarea class="message-input" placeholder="Digite sua mensagem..." id="messageInput" rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn" title="Enviar mensagem">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados de exemplo para as conversas
+        const conversations = {
+            silvano: [
+                { type: 'received', text: 'Olá! Como está o andamento do projeto?', time: '14:30' },
+                { type: 'sent', text: 'Oi! Está indo muito bem. Já finalizei a parte do frontend e agora estou trabalhando na integração com a API.', time: '14:32' },
+                { type: 'received', text: 'Excelente! Vamos ter uma reunião amanhã para alinhar os próximos passos. Que horas fica melhor pra você?', time: '14:35' },
+                { type: 'sent', text: 'Perfeito! Manhã seria ideal, que tal às 10h?', time: '14:36' },
+                { type: 'received', text: '10h funciona perfeitamente! Enviei a pauta da reunião no seu email.', time: '14:38' }
+            ],
+            wagner: [
+                { type: 'received', text: 'Oi! Vi os mockups que você fez, ficaram incríveis!', time: '13:15' },
+                { type: 'sent', text: 'Obrigado! Trabalhei bastante neles. O que achou da paleta de cores?', time: '13:20' },
+                { type: 'received', text: 'Perfeita! Combina muito com a identidade da empresa.', time: '13:22' }
+            ],
+            alexandre: [
+                { type: 'sent', text: 'Alexandre, você pode me ajudar com uma dúvida sobre React?', time: '11:45' },
+                { type: 'received', text: 'Claro! Qual é a dúvida?', time: '11:46' },
+                { type: 'sent', text: 'Estou tendo problemas com o useEffect, ele está executando em loop.', time: '11:47' },
+                { type: 'received', text: 'Provavelmente você esqueceu de colocar as dependências no array. Quer que eu dê uma olhada?', time: '11:48' }
+            ],
+            rogerio: [
+                { type: 'received', text: 'Bom dia! Você já validou os requisitos do sistema?', time: '09:30' },
+                { type: 'sent', text: 'Bom dia, Rogério! Sim, já revisei tudo. Temos algumas questões para discutir.', time: '09:32' }
+            ],
+            equipe: [
+                { type: 'received', text: 'Pessoal, reunião de alinhamento às 15h na sala de conferências.', time: '10:00' },
+                { type: 'sent', text: 'Confirmado! Estarei lá.', time: '10:02' },
+                { type: 'received', text: 'Perfeito! Vamos revisar os entregáveis da semana.', time: '10:03' },
+                { type: 'sent', text: 'Já estou preparando minha apresentação.', time: '10:05' }
+            ]
+        };
+
+        // Informações dos contatos
+        const contactsInfo = {
+            silvano: { name: 'Silvano Sousa', status: 'Online agora', avatar: 'SS' },
+            wagner: { name: 'Wagner Naves', status: 'Ausente há 15 min', avatar: 'WN' },
+            alexandre: { name: 'Alexandre Campanhão', status: 'Online agora', avatar: 'AC' },
+            rogerio: { name: 'Rogério Rosa', status: 'Ocupado', avatar: 'RR' },
+            equipe: { name: 'Grupo Equipe', status: '5 membros online', avatar: 'GE' }
+        };
+
+        let currentContact = 'silvano';
+        let typingTimeout = null;
+
+        // Elementos do DOM
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const contactsList = document.getElementById('contactsList');
+        const currentChatName = document.getElementById('currentChatName');
+        const currentChatStatus = document.getElementById('currentChatStatus');
+        const searchInput = document.getElementById('searchInput');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+
+        // Função para renderizar mensagens
+        function renderMessages(contactId) {
+            const messages = conversations[contactId] || [];
+            messagesContainer.innerHTML = '';
+            
+            messages.forEach(message => {
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${message.type}`;
+                messageEl.innerHTML = `
+                    <div class="message-bubble">
+                        <div>${message.text}</div>
+                        <div class="message-time">${message.time}</div>
+                    </div>
+                `;
+                messagesContainer.appendChild(messageEl);
+            });
+            
+            // Scroll para a última mensagem
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Função para enviar mensagem
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+            
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0');
+            
+            // Adicionar mensagem às conversas
+            if (!conversations[currentContact]) {
+                conversations[currentContact] = [];
+            }
+            
+            conversations[currentContact].push({
+                type: 'sent',
+                text: text,
+                time: time
+            });
+            
+            // Limpar input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            sendBtn.disabled = true;
+            
+            // Renderizar mensagens novamente
+            renderMessages(currentContact);
+            
+            // Simular digitação
+            simulateTyping();
+            
+            // Simular resposta automática após 2-3 segundos
+            setTimeout(() => {
+                const responses = {
+                    silvano: [
+                        'Entendi, obrigado pela informação!',
+                        'Perfeito! Vamos seguir com isso.',
+                        'Ótimo trabalho! Continue assim.'
+                    ],
+                    wagner: [
+                        'Gostei da ideia!',
+                        'Vamos discutir isso na próxima reunião.',
+                        'Pode deixar que vou verificar.'
+                    ],
+                    alexandre: [
+                        'Legal! Vou dar uma olhada.',
+                        'Show! Me manda mais detalhes.',
+                        'Combinado! Preciso ver uns documentos primeiro.'
+                    ],
+                    rogerio: [
+                        'Certo, vou analisar.',
+                        'Entendido. Te retorno em breve.',
+                        'Perfeito! Vamos agendar uma call.'
+                    ],
+                    equipe: [
+                        'Ótima contribuição!',
+                        'Todos concordam com isso?',
+                        'Vamos adicionar isso no backlog.'
+                    ]
+                };
+                
+                const contactResponses = responses[currentContact] || responses.silvano;
+                const randomResponse = contactResponses[Math.floor(Math.random() * contactResponses.length)];
+                
+                // Mostrar indicador de digitação
+                showTypingIndicator();
+                
+                // Após 1.5 segundos, mostrar resposta
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    
+                    conversations[currentContact].push({
+                        type: 'received',
+                        text: randomResponse,
+                        time: new Date().getHours().toString().padStart(2, '0') + ':' + 
+                              new Date().getMinutes().toString().padStart(2, '0')
+                    });
+                    
+                    renderMessages(currentContact);
+                }, 1500);
+                
+            }, Math.random() * 1000 + 2000); // 2-3 segundos
+        }
+
+        // Simular digitação
+        function simulateTyping() {
+            // Mostrar indicador de digitação no lado do remetente
+            const typingEl = document.createElement('div');
+            typingEl.className = 'message received';
+            typingEl.innerHTML = `
+                <div class="message-bubble">
+                    <div class="typing-indicator">
+                        digitando
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingEl);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Remover após 1 segundo
+            setTimeout(() => {
+                if (typingEl.parentNode) {
+                    typingEl.remove();
+                }
+            }, 1000);
+        }
+
+        // Mostrar indicador de digitação
+        function showTypingIndicator() {
+            const typingEl = document.createElement('div');
+            typingEl.id = 'typingIndicator';
+            typingEl.className = 'message received';
+            typingEl.innerHTML = `
+                <div class="message-bubble">
+                    <div class="typing-indicator">
+                        digitando
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingEl);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Esconder indicador de digitação
+        function hideTypingIndicator() {
+            const typingEl = document.getElementById('typingIndicator');
+            if (typingEl) {
+                typingEl.remove();
+            }
+        }
+
+        // Função para trocar de contato
+        function switchContact(contactId) {
+            currentContact = contactId;
+            
+            // Atualizar contato ativo
+            document.querySelectorAll('.contact-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-contact="${contactId}"]`).classList.add('active');
+            
+            // Atualizar header do chat
+            const contact = contactsInfo[contactId];
+            currentChatName.textContent = contact.name;
+            currentChatStatus.textContent = contact.status;
+            currentChatStatus.style.color = contact.status.includes('Online') ? '#3ecf8e' : 
+                                           contact.status.includes('Ausente') ? '#f4a100' : 
+                                           contact.status.includes('Ocupado') ? '#ff4757' : '#888';
+            document.querySelector('.chat-avatar').textContent = contact.avatar;
+            
+            // Fechar menu mobile se aberto
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+            }
+            
+            // Renderizar mensagens
+            renderMessages(contactId);
+        }
+
+        // Auto-resize do textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+            sendBtn.disabled = !this.value.trim();
+        });
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (this.value.trim()) {
+                    sendMessage();
+                }
+            }
+        });
+
+        // Event listeners para contatos
+        contactsList.addEventListener('click', function(e) {
+            const contactItem = e.target.closest('.contact-item');
+            if (contactItem) {
+                const contactId = contactItem.dataset.contact;
+                switchContact(contactId);
+            }
+        });
+
+        // Busca de contatos
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const contactItems = document.querySelectorAll('.contact-item');
+            
+            contactItems.forEach(item => {
+                const name = item.querySelector('.contact-info h4').textContent.toLowerCase();
+                const role = item.querySelector('.contact-info p').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || role.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Menu mobile
+        mobileMenuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+
+        // Fechar menu mobile ao clicar fora (em telas pequenas)
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(e.target) && 
+                !mobileMenuBtn.contains(e.target) &&
+                sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        // Inicializar
+        function initialize() {
+            renderMessages(currentContact);
+            sendBtn.disabled = true;
+            
+            // Ajustar altura inicial do textarea
+            messageInput.style.height = 'auto';
+            messageInput.style.height = messageInput.scrollHeight + 'px';
+        }
+
+        // Simulação de mensagens recebidas periódicas
+        setInterval(() => {
+            if (Math.random() < 0.05) { // 5% de chance a cada 10 segundos
+                const contacts = Object.keys(conversations);
+                const randomContact = contacts[Math.floor(Math.random() * contacts.length)];
+                
+                if (randomContact !== currentContact) {
+                    const messages = [
+                        'Você está aí?',
+                        'Podemos conversar rapidamente?',
+                        'Tenho uma novidade!',
+                        'Viu o email que enviei?',
+                        'Quando tiver tempo, me chama!'
+                    ];
+                    
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    const time = new Date().getHours().toString().padStart(2, '0') + ':' + 
+                                new Date().getMinutes().toString().padStart(2, '0');
+                    
+                    conversations[randomContact].push({
+                        type: 'received',
+                        text: randomMessage,
+                        time: time
+                    });
+                    
+                    // Atualizar badge de notificação
+                    const contactItem = document.querySelector(`[data-contact="${randomContact}"]`);
+                    if (contactItem && !contactItem.classList.contains('active')) {
+                        let badge = contactItem.querySelector('.notification-badge');
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'notification-badge';
+                            badge.style.cssText = `
+                                position: absolute;
+                                top: 8px;
+                                right: 8px;
+                                width: 8px;
+                                height: 8px;
+                                background: #3ecf8e;
+                                border-radius: 50%;
+                            `;
+                            contactItem.style.position = 'relative';
+                            contactItem.appendChild(badge);
+                        }
+                    }
+                }
+            }
+        }, 10000);
+
+        // Inicializar quando a página carregar
+        window.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>

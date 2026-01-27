@@ -1,0 +1,461 @@
+from django.contrib import admin
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+from django.db.models import Count, Q
+from django.urls import reverse
+from django.utils import timezone
+from datetime import timedelta
+from .models import (
+    Empresa, Departamento, Cargo, Usuario, Grupo, GrupoMembro,
+    Conversa, ConversaParticipante, Mensagem, MensagemLeitura,
+    MensagemReacao, Notificacao, SessaoUsuario, LogAuditoria
+)
+
+# ============================================
+# CONFIGURAÇÕES GERAIS DO ADMIN
+# ============================================
+
+admin.site.site_header = "Comunicador Interno - Administração"
+admin.site.site_title = "Admin Comunicador"
+admin.site.index_title = "Painel de Controle"
+
+# ============================================
+# INLINES (RELACIONAMENTOS)
+# ============================================
+
+class DepartamentoInline(admin.TabularInline):
+    model = Departamento
+    extra = 1
+    fields = ('nome_departamento', 'descricao', 'cor_tema', 'ativo')
+    show_change_link = True
+
+class CargoInline(admin.TabularInline):
+    model = Cargo
+    extra = 1
+    fields = ('nome_cargo', 'nivel_acesso', 'ativo')
+    show_change_link = True
+
+class UsuarioInline(admin.TabularInline):
+    model = Usuario
+    extra = 0
+    fields = ('nome_completo', 'email', 'cargo', 'status_online', 'ativo')
+    readonly_fields = ('ultimo_acesso',)
+    show_change_link = True
+
+class GrupoMembroInline(admin.TabularInline):
+    model = GrupoMembro
+    extra = 1
+    fields = ('usuario', 'papel', 'data_entrada', 'ativo')
+    readonly_fields = ('data_entrada',)
+    autocomplete_fields = ['usuario']
+
+class ConversaParticipanteInline(admin.TabularInline):
+    model = ConversaParticipante
+    extra = 0
+    fields = ('usuario', 'data_entrada', 'ultima_leitura', 'notificacoes_ativas', 'ativo')
+    readonly_fields = ('data_entrada',)
+    autocomplete_fields = ['usuario']
+
+class MensagemInline(admin.TabularInline):
+    model = Mensagem
+    extra = 0
+    fields = ('remetente', 'conteudo_resumo', 'tipo_mensagem', 'data_envio', 'editada')
+    readonly_fields = ('data_envio', 'editada', 'conteudo_resumo')
+    
+    def conteudo_resumo(self, obj):
+        if obj.conteudo:
+            return obj.conteudo[:50] + '...' if len(obj.conteudo) > 50 else obj.conteudo
+        return '-'
+    conteudo_resumo.short_description = 'Conteúdo'
+
+# ============================================
+# EMPRESA ADMIN
+# ============================================
+
+@admin.register(Empresa)
+class EmpresaAdmin(admin.ModelAdmin):
+    list_display = ('nome_empresa', 'cnpj', 'total_usuarios', 'total_departamentos', 'logo_preview', 'ativo', 'created_at')
+    list_filter = ('ativo', 'created_at')
+    search_fields = ('nome_empresa', 'cnpj')
+    readonly_fields = ('created_at', 'updated_at', 'total_usuarios', 'total_departamentos')
+    inlines = [DepartamentoInline]
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('nome_empresa', 'cnpj')
+        }),
+        ('Visual', {
+            'fields': ('logo_path', 'logo_preview')
+        }),
+        ('Status', {
+            'fields': ('ativo',)
+        }),
+        ('Estatísticas', {
+            'fields': ('total_usuarios', 'total_departamentos'),
+            'classes': ('collapse',)
+        }),
+        ('Auditoria', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def logo_preview(self, obj):
+        if obj.logo_path:
+            return format_html('<img src="{}" style="max-width: 50px; max-height: 50px;" />', obj.logo_path)
+        return "Sem logo"
+    logo_preview.short_description = "Preview"
+    
+    def total_usuarios(self, obj):
+        return Usuario.objects.filter(empresa=obj, ativo=True).count()
+    total_usuarios.short_description = "Total de Usuários"
+    
+    def total_departamentos(self, obj):
+        return Departamento.objects.filter(empresa=obj, ativo=True).count()
+    total_departamentos.short_description = "Total de Departamentos"
+
+# ============================================
+# DEPARTAMENTO ADMIN
+# ============================================
+
+@admin.register(Departamento)
+class DepartamentoAdmin(admin.ModelAdmin):
+    list_display = ('nome_departamento', 'empresa', 'cor_tema_preview', 'total_usuarios', 'total_cargos', 'ativo')
+    list_filter = ('empresa', 'ativo', 'created_at')
+    search_fields = ('nome_departamento', 'empresa__nome_empresa')
+    readonly_fields = ('created_at', 'updated_at', 'total_usuarios', 'total_cargos')
+    inlines = [CargoInline, UsuarioInline]
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('empresa', 'nome_departamento', 'descricao')
+        }),
+        ('Personalização', {
+            'fields': ('cor_tema', 'cor_tema_preview')
+        }),
+        ('Status', {
+            'fields': ('ativo',)
+        }),
+        ('Estatísticas', {
+            'fields': ('total_usuarios', 'total_cargos'),
+            'classes': ('collapse',)
+        }),
+        ('Auditoria', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def cor_tema_preview(self, obj):
+        if obj.cor_tema:
+            return format_html(
+                '<div style="width: 30px; height: 20px; background-color: {}; border: 1px solid #ccc; border-radius: 3px;"></div>',
+                obj.cor_tema
+            )
+        return "Não definida"
+    cor_tema_preview.short_description = "Preview Cor"
+    
+    def total_usuarios(self, obj):
+        return Usuario.objects.filter(departamento=obj, ativo=True).count()
+    total_usuarios.short_description = "Usuários"
+    
+    def total_cargos(self, obj):
+        return Cargo.objects.filter(departamento=obj, ativo=True).count()
+    total_cargos.short_description = "Cargos"
+
+# ============================================
+# CARGO ADMIN
+# ============================================
+
+@admin.register(Cargo)
+class CargoAdmin(admin.ModelAdmin):
+    list_display = ('nome_cargo', 'departamento', 'empresa_nome', 'nivel_acesso', 'total_usuarios', 'ativo')
+    list_filter = ('departamento__empresa', 'nivel_acesso', 'ativo', 'created_at')
+    search_fields = ('nome_cargo', 'departamento__nome_departamento', 'departamento__empresa__nome_empresa')
+    readonly_fields = ('created_at', 'updated_at', 'total_usuarios')
+    
+    def empresa_nome(self, obj):
+        return obj.departamento.empresa.nome_empresa
+    empresa_nome.short_description = "Empresa"
+    
+    def total_usuarios(self, obj):
+        return Usuario.objects.filter(cargo=obj, ativo=True).count()
+    total_usuarios.short_description = "Usuários"
+
+# ============================================
+# USUARIO ADMIN
+# ============================================
+
+@admin.register(Usuario)
+class UsuarioAdmin(admin.ModelAdmin):
+    list_display = (
+        'nome_completo', 'email', 'iniciais_preview', 'departamento', 
+        'cargo', 'status_online_display', 'ultimo_acesso_format', 'ativo'
+    )
+    list_filter = (
+        'empresa', 'departamento', 'cargo', 'status_online', 
+        'ativo', 'created_at', 'ultimo_acesso'
+    )
+    search_fields = ('nome_completo', 'email', 'telefone')
+    readonly_fields = (
+        'created_at', 'updated_at', 'ultimo_acesso', 
+        'iniciais_preview', 'total_mensagens', 'total_grupos'
+    )
+    autocomplete_fields = ['empresa', 'departamento', 'cargo']
+    
+    fieldsets = (
+        ('Informações Pessoais', {
+            'fields': ('nome_completo', 'email', 'telefone')
+        }),
+        ('Empresa/Cargo', {
+            'fields': ('empresa', 'departamento', 'cargo')
+        }),
+        ('Avatar e Visual', {
+            'fields': ('iniciais', 'cor_avatar', 'iniciais_preview', 'avatar_path')
+        }),
+        ('Status e Acesso', {
+            'fields': ('status_online', 'ultimo_acesso', 'ativo')
+        }),
+        ('Senha', {
+            'fields': ('senha_hash',),
+            'classes': ('collapse',)
+        }),
+        ('Estatísticas', {
+            'fields': ('total_mensagens', 'total_grupos'),
+            'classes': ('collapse',)
+        }),
+        ('Auditoria', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def iniciais_preview(self, obj):
+        return format_html(
+            '<div style="width: 40px; height: 40px; background: {}; color: white; '
+            'border-radius: 50%; display: flex; align-items: center; justify-content: center; '
+            'font-weight: bold; font-size: 14px;">{}</div>',
+            obj.cor_avatar or '#4444ad',
+            obj.iniciais
+        )
+    iniciais_preview.short_description = "Avatar"
+    
+    def status_online_display(self, obj):
+        colors = {
+            'online': '#00ff88',
+            'ausente': '#ffaa00',
+            'ocupado': '#ff4444',
+            'invisivel': '#999999'
+        }
+        color = colors.get(obj.status_online, '#999999')
+        return format_html(
+            '<span style="color: {};">● {}</span>',
+            color,
+            obj.get_status_online_display()
+        )
+    status_online_display.short_description = "Status"
+    
+    def ultimo_acesso_format(self, obj):
+        if obj.ultimo_acesso:
+            diff = timezone.now() - obj.ultimo_acesso
+            if diff.days > 0:
+                return f"{diff.days} dias atrás"
+            elif diff.seconds > 3600:
+                return f"{diff.seconds//3600}h atrás"
+            elif diff.seconds > 60:
+                return f"{diff.seconds//60}min atrás"
+            else:
+                return "Agora"
+        return "Nunca"
+    ultimo_acesso_format.short_description = "Último Acesso"
+    
+    def total_mensagens(self, obj):
+        return Mensagem.objects.filter(remetente=obj, excluida=False).count()
+    total_mensagens.short_description = "Mensagens Enviadas"
+    
+    def total_grupos(self, obj):
+        return GrupoMembro.objects.filter(usuario=obj, ativo=True).count()
+    total_grupos.short_description = "Grupos"
+
+# ============================================
+# GRUPO ADMIN
+# ============================================
+
+@admin.register(Grupo)
+class GrupoAdmin(admin.ModelAdmin):
+    list_display = ('nome_grupo', 'empresa', 'criador', 'tipo_grupo', 'total_membros', 'created_at', 'ativo')
+    list_filter = ('empresa', 'tipo_grupo', 'ativo', 'created_at')
+    search_fields = ('nome_grupo', 'descricao', 'criador__nome_completo')
+    readonly_fields = ('created_at', 'updated_at', 'total_membros', 'membros_online')
+    inlines = [GrupoMembroInline]
+    
+    def total_membros(self, obj):
+        return GrupoMembro.objects.filter(grupo=obj, ativo=True).count()
+    total_membros.short_description = "Membros"
+    
+    def membros_online(self, obj):
+        return GrupoMembro.objects.filter(
+            grupo=obj, ativo=True, usuario__status_online='online'
+        ).count()
+    membros_online.short_description = "Online"
+
+# ============================================
+# CONVERSA ADMIN
+# ============================================
+
+@admin.register(Conversa)
+class ConversaAdmin(admin.ModelAdmin):
+    list_display = ('id_conversa', 'nome_conversa_display', 'empresa', 'tipo_conversa', 'total_participantes', 'total_mensagens', 'created_at')
+    list_filter = ('empresa', 'tipo_conversa', 'ativo', 'created_at')
+    search_fields = ('nome_conversa',)
+    readonly_fields = ('created_at', 'updated_at', 'total_participantes', 'total_mensagens', 'ultima_mensagem')
+    inlines = [ConversaParticipanteInline, MensagemInline]
+    
+    def nome_conversa_display(self, obj):
+        if obj.nome_conversa:
+            return obj.nome_conversa
+        elif obj.tipo_conversa == 'grupo' and obj.grupo:
+            return f"Grupo: {obj.grupo.nome_grupo}"
+        else:
+            participantes = ConversaParticipante.objects.filter(conversa=obj, ativo=True)[:2]
+            nomes = [p.usuario.nome_completo for p in participantes]
+            return f"Chat: {' e '.join(nomes)}"
+    nome_conversa_display.short_description = "Nome"
+    
+    def total_participantes(self, obj):
+        return ConversaParticipante.objects.filter(conversa=obj, ativo=True).count()
+    total_participantes.short_description = "Participantes"
+    
+    def total_mensagens(self, obj):
+        return Mensagem.objects.filter(conversa=obj, excluida=False).count()
+    total_mensagens.short_description = "Mensagens"
+    
+    def ultima_mensagem(self, obj):
+        ultima = Mensagem.objects.filter(conversa=obj, excluida=False).order_by('-data_envio').first()
+        if ultima:
+            return f"{ultima.remetente.nome_completo}: {ultima.conteudo[:30]}..." if len(ultima.conteudo) > 30 else ultima.conteudo
+        return "Nenhuma mensagem"
+    ultima_mensagem.short_description = "Última Mensagem"
+
+# ============================================
+# MENSAGEM ADMIN
+# ============================================
+
+@admin.register(Mensagem)
+class MensagemAdmin(admin.ModelAdmin):
+    list_display = ('id_mensagem', 'conversa_nome', 'remetente', 'conteudo_preview', 'tipo_mensagem', 'data_envio', 'editada', 'excluida')
+    list_filter = ('tipo_mensagem', 'editada', 'excluida', 'data_envio')
+    search_fields = ('conteudo', 'remetente__nome_completo')
+    readonly_fields = ('data_envio', 'data_edicao', 'data_exclusao', 'total_leituras', 'total_reacoes')
+    date_hierarchy = 'data_envio'
+    
+    fieldsets = (
+        ('Mensagem', {
+            'fields': ('conversa', 'remetente', 'conteudo', 'tipo_mensagem')
+        }),
+        ('Anexo', {
+            'fields': ('arquivo_path', 'arquivo_nome', 'arquivo_tamanho'),
+            'classes': ('collapse',)
+        }),
+        ('Status', {
+            'fields': ('editada', 'data_edicao', 'excluida', 'data_exclusao')
+        }),
+        ('Estatísticas', {
+            'fields': ('total_leituras', 'total_reacoes', 'data_envio'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def conversa_nome(self, obj):
+        return str(obj.conversa)
+    conversa_nome.short_description = "Conversa"
+    
+    def conteudo_preview(self, obj):
+        if obj.conteudo:
+            return obj.conteudo[:80] + '...' if len(obj.conteudo) > 80 else obj.conteudo
+        return f"[{obj.tipo_mensagem}]"
+    conteudo_preview.short_description = "Conteúdo"
+    
+    def total_leituras(self, obj):
+        return MensagemLeitura.objects.filter(mensagem=obj).count()
+    total_leituras.short_description = "Leituras"
+    
+    def total_reacoes(self, obj):
+        return MensagemReacao.objects.filter(mensagem=obj).count()
+    total_reacoes.short_description = "Reações"
+
+# ============================================
+# NOTIFICAÇÃO ADMIN
+# ============================================
+
+@admin.register(Notificacao)
+class NotificacaoAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'usuario_destinatario', 'tipo_notificacao', 'lida', 'data_criacao')
+    list_filter = ('tipo_notificacao', 'lida', 'data_criacao')
+    search_fields = ('titulo', 'conteudo', 'usuario_destinatario__nome_completo')
+    readonly_fields = ('data_criacao', 'data_leitura')
+    date_hierarchy = 'data_criacao'
+
+# ============================================
+# SESSÃO USUARIO ADMIN
+# ============================================
+
+@admin.register(SessaoUsuario)
+class SessaoUsuarioAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'ip_address', 'data_inicio', 'data_ultimo_acesso', 'ativa')
+    list_filter = ('ativa', 'data_inicio', 'data_ultimo_acesso')
+    search_fields = ('usuario__nome_completo', 'ip_address', 'token_sessao')
+    readonly_fields = ('data_inicio', 'data_ultimo_acesso', 'token_sessao')
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('usuario')
+
+# ============================================
+# LOG AUDITORIA ADMIN
+# ============================================
+
+@admin.register(LogAuditoria)
+class LogAuditoriaAdmin(admin.ModelAdmin):
+    list_display = ('data_acao', 'usuario', 'acao', 'tabela_afetada', 'ip_address')
+    list_filter = ('acao', 'tabela_afetada', 'data_acao')
+    search_fields = ('usuario__nome_completo', 'acao', 'tabela_afetada')
+    readonly_fields = ('data_acao', 'dados_anteriores', 'dados_novos', 'ip_address', 'user_agent')
+    date_hierarchy = 'data_acao'
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+# ============================================
+# ACTIONS PERSONALIZADAS
+# ============================================
+
+@admin.action(description='Ativar usuários selecionados')
+def ativar_usuarios(modeladmin, request, queryset):
+    queryset.update(ativo=True)
+
+@admin.action(description='Desativar usuários selecionados')
+def desativar_usuarios(modeladmin, request, queryset):
+    queryset.update(ativo=False, status_online='invisivel')
+
+@admin.action(description='Marcar como online')
+def marcar_online(modeladmin, request, queryset):
+    queryset.update(status_online='online')
+
+# Adicionar ações ao UsuarioAdmin
+UsuarioAdmin.actions = [ativar_usuarios, desativar_usuarios, marcar_online]
+
+# ============================================
+# CUSTOMIZAÇÃO ADICIONAL
+# ============================================
+
+# Registrar modelos simples sem customização
+admin.site.register(GrupoMembro)
+admin.site.register(ConversaParticipante)
+admin.site.register(MensagemLeitura)
+admin.site.register(MensagemReacao)

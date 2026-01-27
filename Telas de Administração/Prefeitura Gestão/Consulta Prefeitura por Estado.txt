@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GovConnect - Consulta Prefeituras por Estado</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: #0f1419;
+            color: #ededed;
+            font-size: 13px;
+        }
+
+        /* Header Container Centralizado */
+        .header-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Header Superior */
+        .top-header {
+            background: #181818;
+            border-bottom: 1px solid #2e2e2e;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header-main {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #3ecf8e;
+        }
+
+        .logo i {
+            font-size: 20px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            color: #b4b4b4;
+            position: relative;
+        }
+
+        .header-icon:hover {
+            background: #2a2a2a;
+            color: #ededed;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #3ecf8e;
+            border-radius: 50%;
+            border: 2px solid #181818;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-left: 12px;
+            border-left: 1px solid #2e2e2e;
+            padding-left: 20px;
+        }
+
+        .user-section:hover {
+            background: #2a2a2a;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3ecf8e, #2a9d8f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ededed;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .user-last-access {
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* Botão Sair */
+        .logout-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #b4b4b4;
+        }
+
+        .logout-icon:hover {
+            background: rgba(62, 207, 142, 0.2);
+            color: #3ecf8e;
+        }
+
+        /* Menu de Navegação */
+        .nav-bar {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2e2e2e;
+            padding: 0 24px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            color: #b4b4b4;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: #ededed;
+            background: #2a2a2a;
+        }
+
+        .nav-link.active {
+            color: #3ecf8e;
+            border-bottom-color: #3ecf8e;
+        }
+
+        .nav-link i {
+            font-size: 12px;
+        }
+
+        /* Submenus Dropdown */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 6px;
+            min-width: 220px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+            padding: 8px 0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-item:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px 16px;
+            color: #b4b4b4;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 400;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .dropdown-menu a:hover {
+            background: #2a2a2a;
+            color: #3ecf8e;
+            border-left-color: #3ecf8e;
+        }
+
+        .dropdown-menu a i {
+            width: 16px;
+            font-size: 11px;
+        }
+
+        .nav-link .dropdown-arrow {
+            margin-left: 4px;
+            font-size: 10px;
+            transition: transform 0.2s;
+        }
+
+        .nav-item:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 105px;
+            padding: 24px;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ededed;
+            margin-bottom: 8px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .breadcrumb i {
+            font-size: 10px;
+        }
+
+        .breadcrumb .active {
+            color: #3ecf8e;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid #2e2e2e;
+            background: transparent;
+            color: #b4b4b4;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #2a2a2a;
+            color: #ededed;
+            border-color: #3ecf8e;
+        }
+
+        .status-badge-header {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(62, 207, 142, 0.1);
+            color: #3ecf8e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge-header::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3ecf8e;
+        }
+
+        /* States Grid */
+        .states-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .state-card {
+            background: #181818;
+            border: 1px solid #2e2e2e;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .state-card:hover {
+            transform: translateY(-2px);
+            border-color: #3e3e3e;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .state-header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid #2e2e2e;
+        }
+
+        .state-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ededed;
+            margin: 0;
+        }
+
+        .state-body {
+            padding: 20px;
+        }
+
+        .state-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .state-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #ededed;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .state-uf {
+            font-size: 14px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .state-name i,
+        .state-uf i {
+            color: #3ecf8e;
+            font-size: 14px;
+        }
+
+        .btn-consult {
+            width: 100%;
+            padding: 10px;
+            background: #3ecf8e;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-consult:hover {
+            background: #2a9d8f;
+        }
+
+        .btn-consult i {
+            font-size: 12px;
+        }
+
+        /* Botão Inativo */
+        .btn-consult-inactive {
+            width: 100%;
+            padding: 10px;
+            background: #444;
+            border: none;
+            border-radius: 6px;
+            color: #888;
+            font-weight: 500;
+            cursor: not-allowed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-consult-inactive i {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Badge para estado inativo */
+        .state-inactive-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: rgba(255, 59, 48, 0.1);
+            color: #ff3b30;
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 4px;
+            margin-top: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1640px) {
+            .header-container,
+            .main-content {
+                max-width: calc(100% - 48px);
+                margin-left: 24px;
+                margin-right: 24px;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .states-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .states-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container,
+            .main-content {
+                max-width: calc(100% - 32px);
+                margin-left: 16px;
+                margin-right: 16px;
+                padding: 0 16px;
+            }
+            
+            .main-content {
+                margin-top: 90px;
+                padding: 16px;
+            }
+            
+            .header-main {
+                padding: 0 16px;
+            }
+            
+            .nav-bar {
+                padding: 0 16px;
+                overflow-x: auto;
+            }
+            
+            .nav-menu {
+                min-width: max-content;
+            }
+            
+            .states-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .page-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-container,
+            .main-content {
+                max-width: calc(100% - 16px);
+                margin-left: 8px;
+                margin-right: 8px;
+                padding: 0 8px;
+            }
+            
+            .header-main {
+                padding: 0 8px;
+            }
+            
+            .nav-bar {
+                padding: 0 8px;
+            }
+            
+            .user-section {
+                margin-left: 0;
+                padding-left: 12px;
+            }
+            
+            .states-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Superior -->
+    <div class="top-header">
+        <div class="header-container">
+            <div class="header-main">
+                <div class="logo">
+                    <i class="fa-sharp-duotone fa-solid fa-g"></i>
+                    <span>GovConnect</span>
+                </div>
+
+                <div class="header-right">
+                    <div class="header-icon">
+                        <i class="fas fa-bell"></i>
+                        <div class="notification-badge"></div>
+                    </div>
+                    <div class="header-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="header-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+
+                    <div class="user-section">
+                        <div class="user-avatar">WF</div>
+                        <div class="user-info">
+                            <div class="user-name">Wagner Florêncio</div>
+                            <div class="user-role">Admin • N: 786</div>
+                            <div class="user-last-access">Último acesso: 24/12/2025 14:35</div>
+                        </div>
+                        <i class="fas fa-chevron-down" style="color: #888; font-size: 10px;"></i>
+                    </div>
+
+                    <!-- Botão Sair -->
+                    <div class="logout-icon" title="Sair">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu de Navegação -->
+            <div class="nav-bar">
+                <div class="nav-menu">
+                    <div class="nav-item">
+                        <a href="#visao-geral" class="nav-link">
+                            <i class="fas fa-home"></i>
+                            Visão Geral
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-chart-bar"></i> Dashboard Resumo</a>
+                            <a href="#"><i class="fas fa-chart-line"></i> Métricas Chave</a>
+                            <a href="#"><i class="fas fa-tachometer-alt"></i> Indicadores</a>
+                            <a href="#"><i class="fas fa-clipboard-list"></i> Relatório Diário</a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#monit-coleta" class="nav-link">
+                            <i class="fas fa-database"></i>
+                            Monit. Coleta
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-sync-alt"></i> Coletas Ativas</a>
+                            <a href="#"><i class="fas fa-history"></i> Histórico de Coletas</a>
+                            <a href="#"><i class="fas fa-exclamation-triangle"></i> Alertas e Falhas</a>
+                            <a href="#"><i class="fas fa-chart-pie"></i> Estatísticas</a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#dashboard-sistema" class="nav-link">
+                            <i class="fas fa-chart-line"></i>
+                            Dashboard Sistema
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-server"></i> Status do Sistema</a>
+                            <a href="#"><i class="fas fa-microchip"></i> Performance</a>
+                            <a href="#"><i class="fas fa-file-alt"></i> Logs do Sistema</a>
+                            <a href="#"><i class="fas fa-heartbeat"></i> Monitoramento</a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#consulta-prefeituras" class="nav-link active">
+                            <i class="fas fa-building"></i>
+                            Prefeitura
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-building"></i> Cadastrar Prefeitura</a>
+                            <a href="#"><i class="fas fa-list"></i> Lista de Prefeitura</a>
+                            <a href="#"><i class="fas fa-address-book"></i> Dados de Contato</a>
+                            <a href="#"><i class="fas fa-file-contract"></i> Contratos Ativos</a>
+                            <a href="#"><i class="fas fa-map-marked-alt"></i> Mapa de Cobertura</a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#usuarios" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            Usuários
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-user-cog"></i> Gerenciar Usuários</a>
+                            <a href="#"><i class="fas fa-user-shield"></i> Permissões</a>
+                            <a href="#"><i class="fas fa-user-clock"></i> Atividade de Usuários</a>
+                            <a href="#"><i class="fas fa-user-plus"></i> Novos Cadastros</a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#clusters" class="nav-link">
+                            <i class="fas fa-th"></i>
+                            Clusters
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-sitemap"></i> Gerenciar Salas</a>
+                            <a href="#"><i class="fas fa-calendar-alt"></i> Agendamentos</a>
+                            <a href="#"><i class="fas fa-check-circle"></i> Disponibilidade</a>
+                            <a href="#"><i class="fas fa-cogs"></i> Configurações</a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#relatorios" class="nav-link">
+                            <i class="fas fa-file-alt"></i>
+                            Relatórios
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-file-pdf"></i> Relatórios Mensais</a>
+                            <a href="#"><i class="fas fa-chart-bar"></i> Estatísticas</a>
+                            <a href="#"><i class="fas fa-download"></i> Exportar Dados</a>
+                            <a href="#"><i class="fas fa-history"></i> Histórico Completo</a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#ferramentas" class="nav-link">
+                            <i class="fas fa-tools"></i>
+                            Ferramentas
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-robot"></i> Monitor de Robôs</a>
+                            <a href="#"><i class="fas fa-database"></i> Backup de Dados</a>
+                            <a href="#"><i class="fas fa-terminal"></i> Console Admin</a>
+                            <a href="#"><i class="fas fa-wrench"></i> Utilitários</a>
+                        </div>
+                    </div>
+                    <div class="nav-item">
+                        <a href="#suporte" class="nav-link">
+                            <i class="fas fa-life-ring"></i>
+                            Suporte
+                            <i class="fas fa-chevron-down dropdown-arrow"></i>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#"><i class="fas fa-ticket-alt"></i> Abrir Chamado</a>
+                            <a href="#"><i class="fas fa-comments"></i> Chat Online</a>
+                            <a href="#"><i class="fas fa-book"></i> Base de Conhecimento</a>
+                            <a href="#"><i class="fas fa-phone-alt"></i> Telefones de Suporte</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title-section">
+                <h1 class="page-title">Consulta Prefeituras por Estado</h1>
+                <div class="breadcrumb">
+                    <span>Início</span>
+                    <i class="fas fa-chevron-right"></i>
+                    <span class="active">Consulta Prefeituras</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn" onclick="refreshPage()">
+                    <i class="fas fa-sync-alt"></i>
+                    Atualizar
+                </button>
+                <div class="status-badge-header">
+                    Consulta Disponível
+                </div>
+            </div>
+        </div>
+
+        <!-- Estados Grid -->
+        <div class="states-grid">
+            <!-- Acre -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Acre</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Acre</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: AC</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/AC" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alagoas -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Alagoas</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Alagoas</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: AL</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/AL" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Amapá -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Amapá</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Amapá</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: AP</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/AP" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Amazonas -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Amazonas</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Amazonas</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: AM</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/AM" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Bahia -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Bahia</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Bahia</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: BA</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/BA" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Ceará -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Ceará</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Ceará</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: CE</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/CE" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Distrito Federal -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Distrito Federal</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Distrito Federal</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: DF</span>
+                        </div>
+                    </div>
+                    <button class="btn-consult-inactive" onclick="showDistrictFederalMessage()">
+                        <i class="fas fa-ban"></i>
+                        Consulta Indisponível
+                    </button>
+                    <div class="state-inactive-badge">
+                        <i class="fas fa-info-circle"></i> Sem prefeituras
+                    </div>
+                </div>
+            </div>
+
+            <!-- Espírito Santo -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Espírito Santo</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Espírito Santo</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: ES</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/ES" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Goiás -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Goiás</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Goiás</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: GO</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/GO" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Maranhão -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Maranhão</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Maranhão</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: MA</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/MA" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mato Grosso -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Mato Grosso</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Mato Grosso</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: MT</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/MT" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Mato Grosso do Sul -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Mato Grosso do Sul</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Mato Grosso do Sul</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: MS</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/MS" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Minas Gerais -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Minas Gerais</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Minas Gerais</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: MG</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/MG" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pará -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Pará</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Pará</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: PA</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/PA" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Paraíba -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Paraíba</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Paraíba</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: PB</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/PB" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Paraná -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Paraná</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Paraná</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: PR</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/PR" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pernambuco -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Pernambuco</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Pernambuco</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: PE</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/PE" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Piauí -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Piauí</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Piauí</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: PI</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/PI" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rio de Janeiro -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Rio de Janeiro</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Rio de Janeiro</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: RJ</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/RJ" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rio Grande do Norte -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Rio Grande do Norte</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Rio Grande do Norte</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: RN</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/RN" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rio Grande do Sul -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Rio Grande do Sul</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Rio Grande do Sul</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: RS</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/RS" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rondônia -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Rondônia</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Rondônia</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: RO</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/RO" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Roraima -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Roraima</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Roraima</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: RR</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/RR" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Santa Catarina -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Santa Catarina</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Santa Catarina</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: SC</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/SC" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- São Paulo -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>São Paulo</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>São Paulo</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: SP</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/SP" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sergipe -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Sergipe</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Sergipe</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: SE</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/SE" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tocantins -->
+            <div class="state-card">
+                <div class="state-header">
+                    <h3>Tocantins</h3>
+                </div>
+                <div class="state-body">
+                    <div class="state-info">
+                        <div class="state-name">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Tocantins</span>
+                        </div>
+                        <div class="state-uf">
+                            <i class="fas fa-tag"></i>
+                            <span>UF: TO</span>
+                        </div>
+                    </div>
+                    <a href="/prefeituras/TO" class="btn-consult">
+                        <i class="fas fa-search"></i>
+                        Consultar Prefeituras
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function refreshPage() {
+            const btn = document.querySelector('.btn[onclick="refreshPage()"]');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                const notification = document.querySelector('.notification-badge');
+                notification.style.animation = 'none';
+                notification.offsetHeight;
+                notification.style.animation = null;
+                
+                console.log('Página atualizada');
+            }, 1500);
+        }
+
+        function showDistrictFederalMessage() {
+            alert('Distrito Federal não possui prefeituras municipais. O DF é uma unidade federativa composta apenas pelo governo distrital.');
+        }
+
+        // Adiciona animação de entrada para os cartões
+        document.addEventListener('DOMContentLoaded', () => {
+            const stateCards = document.querySelectorAll('.state-card');
+            stateCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+            
+            // Adicionar evento para o botão Sair
+            document.querySelector('.logout-icon').addEventListener('click', () => {
+                if (confirm('Tem certeza que deseja sair do sistema?')) {
+                    showToast('Saindo do sistema...', 'info');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                }
+            });
+            
+            // Função para mostrar toast
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 100px;
+                    right: 24px;
+                    background: ${type === 'success' ? '#3ecf8e' : '#fbbf24'};
+                    color: white;
+                    padding: 12px 18px;
+                    border-radius: 25px;
+                    font-size: 0.9rem;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+                    z-index: 1000;
+                    opacity: 0;
+                    transform: translateY(-20px);
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    border: 1px solid rgba(255,255,255,0.2);
+                `;
+                
+                toast.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                    ${message}
+                `;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '1';
+                    toast.style.transform = 'translateY(0)';
+                }, 100);
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-20px)';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
